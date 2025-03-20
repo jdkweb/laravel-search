@@ -58,7 +58,7 @@ In this example one model (Articles) is defined in a set named 'global'.
     ]
 ],
 ```
-[See example of large configuration file with methods an closures](#examples) 
+[See example of large configuration file with methods an closures](#Configuration-3) 
 
 Use:
 
