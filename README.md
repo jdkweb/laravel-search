@@ -7,9 +7,10 @@ Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [with config file](#Configure in the config file)
-  - [without config file](#noconfig)
-- [Methods and Closures](#methods)
+  - [Configuration](#configuration)
+  - [Configuration on the fly](#Configuration-1)
+- [Filter specific words from the search](#Configuration-2)  
+- [Methods and Closures](#Configuration-3)
 
 
 ## Installation
@@ -20,7 +21,7 @@ Install the package via composer:
 composer require jdkweb/laravel-search
 ```
 
-### config
+### Config
 For configuration settings you need to publish the config
 ```bash
 php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --tag="config"
@@ -28,7 +29,13 @@ php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --ta
 In the config is it possible to setup serveral search-engine setting. So you can setup a global website search and in the blog a specfic blog topic search.
 
 ## Usage
-### Configure in the config file
+### Configuration
+#### Use config file, publish the config first 
+Define the models used in search, set default search conditions and define the output variables.
+
+This makes it possible to create multiple specific search engines for certain pages, in addition to a global search engine for the entire website 
+
+In this example one model (Articles) is defined in a set named 'global'.
 ```php
 'settings' => [
     'global' => [                       // Config name 'global'
@@ -99,16 +106,16 @@ $filters = ['all','blog','articles','workshops']
 $filter = request()->get('f');
 
 $search = match($filter) {
-    'blog' => app('search')->settings('blog');
+    'blog' => app('search')->settings('blog');              
     'articles' => app('search')->settings('articles');
     'workshops' => app('search')->settings('workshops');
-    default => app('search')->settings('default');
+    default => app('search')->settings('default');          
 };
 
 $result = $search->get();
 ```
 
-### Rename
+#### Rename
 Renaming the GET variables that appear in the URL
 ```php
 // Default
@@ -130,8 +137,8 @@ search?search=some search words&page=1&filter=articles
             ...  
 ```
 
-### Configure direct
-Create search from scratch, without config settings
+### Configuration
+#### Create search from scratch, on the fly, without config settings
 ```php
 $search = app('search')
     ->setGetVars([
@@ -178,84 +185,58 @@ $search = app('search')
 }
 ```
 
-### Configure
+### Configuration
+#### Filter specific words from the search
+Language related list of words that are filtered from the search
 
+Words like Linking words (the, and, ...). This makes it possible to keep the search results cleaner
+```php
+'filter_words' => [
+    'nl' =>  'de, en, of, als, het, een, van, op, ook',
+    'en' =>  'the, or, else, and, like',
+    'de' =>  'das, der, die, und',
+    'fr' =>  'le, la, un, une',
+]
+```
 
+### Configuration
+#### Use methods and Closures in the config file
+The configurations above provide several examples of using methods and Closures.
 
-## Examples
+This makes it possible to relate the models to be used to each other or to use external data in the search results.
+
+#### Methods
+```php
+...
+->showResults(\App\Models\Articles::class, [
+    'title' => 'name',                     
+    'lead' => 'intro',                     
+    'url' => 'getSlug'    // Method getSlug in Articles class                     
+])
+```
+\App\Models\Articles
+```php
+public function getSlug()
+{
+    return '/articles/' . $this->createSlug();
+}
+```
+#### Closures
+```php
+->showResults(\App\Models\Articles::class, [
+    'title' => 'name',                     
+    'lead' => 'intro',                     
+    'url' => fn() => '/articles/' . $this->createSlug();                   
+])
+```
 
 ```php
-    'settings' => [
-        'global' => [
-            'App\Models\Articles' => [
-                'fields' => [
-                    'title' => 2.5,
-                    'lead' => 2,
-                    'body' => 1,
-                ],
-                'conditions' => [
-                    'active' => 1,
-                    'published' => 1,
-                ],
-                'result' => [
-                    'title' => 'title',
-                    'lead' => 'lead',
-                    'url' => 'getSlug',
-                    'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')
-                ]
-            ],
-            'App\Models\Blog' => [
-                'fields' => [
-                    'title' => 5,
-                    'lead' => 2,
-                    'body' => 0.5,
-                ],
-                'conditions' => [
-                    'active' => 1,
-                    'published' => 1,
-                    'published_at:>=' => time(),
-                    'user_id:in' => function () {
-                        return App\Models\User::query()
-                            ->where('active', 1)
-                            ->select('id');
-                    }
-                ],
-                'result' => [
-                    'title' => 'title',
-                    'lead' => 'lead',
-                    'url' => fn () => '/artikelen/' . $this->slug,
-                    'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')
-                ]
-            ],
-            'App\Models\Pages' => [
-                'fields' => [
-                    'pagetitle' => 2,
-                    'intro' => 1,
-                    'body' => 1,
-                ],
-                'conditions' => [
-                    'active' => 1,
-                ],
-                'result' => [
-                    'title' => 'pagetitle',
-                    'lead' => 'intro',
-                    'url' => 'getUrl',
-                ]
-            ],
-        ],
-        'articles' => [
-            'App\Models\Articles' => [
-                'fields' => [
-                    'title' => 2.5,
-                    'lead' => 2,
-                    'body' => 1,
-                ],
-                'conditions' => [
-                ...
-            ],
-        ]
-        'blog' => [
-            'App\Models\Blog' => [
-            ...        
-    ],
+->showResults(\App\Models\Articles::class, [
+    'title' => 'name',                     
+    'lead' => 'intro',                     
+    'url' => function() {
+        return $this->getSlug()     
+    },
+    'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')                     
+])
 ```
