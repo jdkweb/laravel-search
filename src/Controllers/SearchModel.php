@@ -12,7 +12,7 @@ class SearchModel
 
     public array $showResultFields = [];
 
-    private array $allowedOperators = ['in','or','like','!like','!=','=','>','>=','<','<='];
+    private array $allowedOperators = ['in','!in','or','like','!like','!=','=','>','>=','<','<='];
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -126,10 +126,8 @@ class SearchModel
         // Check operator
         if(!in_array($operator, $this->allowedOperators)) return null;
 
-        // Translate not like
-        if($operator == '!like') {
-            $operator = 'not like';
-        }
+        // Translate ! to not (for in and like)
+        $operator = preg_replace("/^(!)(in|like)$/i",'not ${2}', $operator);
 
         return [$key, $operator, $value, $or];
     }

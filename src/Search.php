@@ -116,8 +116,16 @@ class Search
                         }
 
                         // IN operator
-                        if($set[1] === 'in') {
-                            $whereMethod .= 'In';
+                        $postfix = match($set[1]) {
+                            'in' => "In",
+                            'not_in' => "NotIn",
+                            'like' => "Like",
+                            'notlike' => "NotLike",
+                            default => "",
+                        };
+
+                        if($postfix != '') {
+                            $whereMethod .= $postfix;
                             unset($set[1]);
                         }
 
@@ -125,8 +133,16 @@ class Search
                         unset($set[3]);
 
                         // Closure
-                        if(is_a($set[2], 'Closure')) {
-                            $query->{$whereMethod}(...$set());
+                        if(is_a(end($set), 'Closure')) {
+                            // Run closure
+                            try {
+                                $res = call_user_func(end($set));
+                                // remove Closure from array
+                                array_pop($set);
+                                $query->{$whereMethod}(...[...$set, $res]);
+                            } catch (\Throwable $e) {
+                                // error in closure, not included in query
+                            }
                         }
                         else {
                             $query->{$whereMethod}(...$set);
@@ -209,7 +225,6 @@ class Search
                 foreach ($result['settings']->showResultFields as $key => $field) {
 
                     if(is_a($field, 'Closure')) {
-
                         $boundClosure = \Closure::bind($field, $row);
                         $r[$key] = '';
                         try {
