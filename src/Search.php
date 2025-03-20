@@ -325,6 +325,10 @@ class Search
         $arr = config('search.settings.'.$setting);
 
         foreach ($arr as $model => $set) {
+            if($model == 'variables') {
+                $this->setGetVars($set);
+                continue;
+            }
             $this->setModel($model, $set['fields']);
             $this->setConditions($model, $set['conditions']);
             $this->showResults($model, $set['result']);
@@ -403,9 +407,12 @@ class Search
      */
     public function setGetVars(array $vars): static
     {
-        foreach ($vars as $key => $value) {
-            $this->$key = $value;
+        foreach ($this->attributes  as $key => $value) {
+            if(isset($vars[$key])) {
+                $this->attributes[$key] = $vars[$key];
+            }
         }
+
         return $this;
     }
 }
