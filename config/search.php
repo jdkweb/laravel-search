@@ -25,7 +25,7 @@ return [
                 'search_query' => 'search',     // search terms
                 'actual_page' => 'page',        // result page
                 'actual_filter' => 'filter'     // result filter
-            ],    
+            ],
             'App\Models\Articles' => [
                 'fields' => [
                     'title' => 2.5,
