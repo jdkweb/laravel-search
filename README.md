@@ -7,7 +7,7 @@ Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [with config file](#config)
+  - [with config file](#Configure in the config file)
   - [without config file](#noconfig)
 - [Methods and Closures](#methods)
 
@@ -55,7 +55,7 @@ In the config is it possible to setup serveral search-engine setting. So you can
 
 Use:
 
-Laravel-search is working with GET variables (can be renamed)
+Laravel-search is working with GET variables ([can be renamed](#rename))
 ```php
 search?q=some search words 
 ```
@@ -88,6 +88,98 @@ Result:
   2 => array:6 [▶]
   3 => array:6 [▶]
 ```
+### Filters
+![use result filters](./images/search-filters.webp)
+Use specific model or group of models for searching
+```php
+// available filters
+$filters = ['all','blog','articles','workshops']
+
+// get filter &f=[FILTER] 
+$filter = request()->get('f');
+
+$search = match($filter) {
+    'blog' => app('search')->settings('blog');
+    'articles' => app('search')->settings('articles');
+    'workshops' => app('search')->settings('workshops');
+    default => app('search')->settings('default');
+};
+
+$result = $search->get();
+```
+
+### Rename
+Renaming the GET variables that appear in the URL
+```php
+// Default
+search?q=some search words&p=1&f=articles
+
+// Modified using the setting below
+search?search=some search words&page=1&filter=articles 
+```
+
+```php
+'settings' => [
+    'global' => [                               // Config name 'global'
+            'variables' => [                    
+                'search_query' => 'search',     // search terms
+                'actual_page' => 'page',        // result page
+                'actual_filter' => 'filter'     // result filter
+            ],    
+            'App\Models\Articles' => [
+            ...  
+```
+
+### Configure direct
+Create search from scratch, without config settings
+```php
+$search = app('search')
+    ->setGetVars([
+        'search_query' => 'search',     // search terms
+        'actual_page' => 'page',        // result page
+        'actual_filter' => 'filter'     // result filter
+    ])
+    ->setModel(\App\Models\Articles::class, [   // Database Article table to search in
+        'title' => 2,                           // Fieldnames with priority (extra weight)     
+        'lead' => 1.5,       
+        'body' => 1,
+    ])
+    ->setConditions(\App\Models\Articles::class, [
+        'active' => 1,                          // active must be true
+        'created_at:>' => '01-01-2025',         // articles created after 01 jan. 2025 
+    ])
+    ->showResults(\App\Models\Articles::class, [
+        'title' => 'name',                      // pass database field = 'name' as 'title' to results
+        'lead' => 'intro',                      // pass database field = 'intro' as 'lead' to results
+        'url' => 'getSlug'                      // method in \App\Models\Articles pass as 'url' to results
+    ])
+    ->setModel(\App\Models\User::class, [       // Database User table to search in
+        'name' => 1,                            // Fieldnames with priority (extra weight)
+        'email' => 1,
+    ])
+    ->setConditions(\App\Models\User::class, [
+        'active' => 1,                          // active must be true
+        'public:in' => function () {            // public value must be available in Public-table
+            return App\Models\Public::query()
+                ->where('active', 1)
+                ->select('id');
+        }
+    ])
+    ->showResults(\App\Models\User::class, [
+        'title' => function () {                // show name of user with the company name (from other table)
+            $company_name = App\Models\Companies::query()
+                ->where('user_id', $this->id)
+                ->select('company_name')->first()->company_name        
+            return $this->name . " (" . $company_name .")"
+        },
+        'lead' => 'intro',
+        'url' => fn() => '/users/' . $this->slug  // closure arrow function to get slug passed as url to result    
+    ]);
+}
+```
+
+### Configure
+
 
 
 ## Examples
