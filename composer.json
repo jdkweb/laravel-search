@@ -1,0 +1,38 @@
+{
+    "name": "jdkweb/search",
+    "type": "library",
+    "description": "Laravel-Search is an engin using the models. Search easily, flexible add an intelligent on your Laravel website or application.",
+    "keywords": [
+        "php",
+        "laravel",
+        "search",
+        "model"
+    ],
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Jdkweb\\Search\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Jdkweb\\Search\\SearchServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "Jasper",
+            "email": "jasper@jdkweb.nl"
+        }
+    ],
+    "require": {
+        "php": ">=8.1"
+    }
+}
