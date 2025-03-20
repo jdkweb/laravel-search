@@ -5,6 +5,8 @@ return [
     /**
      * Settings Example
      *
+     * variables: name get variables for the search (GET) request
+     *
      * global: global search in several modals
      * articles: specific search on article pages
      *
@@ -19,6 +21,11 @@ return [
      */
     'settings' => [
         'global' => [
+            'variables' => [
+                'search_query' => 'search',     // search terms
+                'actual_page' => 'page',        // result page
+                'actual_filter' => 'filter'     // result filter
+            ],    
             'App\Models\Articles' => [
                 'fields' => [
                     'title' => 2.5,
