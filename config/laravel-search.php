@@ -4,13 +4,14 @@ return [
 
     'settings' => [
         'default' => [
+            'searchQuery' => 'microsoft',
             'variables' => [
                 'search_query' => 'search',     // search terms
                 'actual_page' => 'page',        // result page
                 'actual_filter' => 'filter'     // result filter
             ],
             'App\Models\Books\Book' => [
-                'fields' => [
+                'searchFields' => [
                     'name' => 10,
                     'body' => 2,
                     'colofon' => 1,
@@ -20,7 +21,7 @@ return [
                     'active:in' => [0,1],
                     'name:!like' => fn() => '%Handboek webcontent%'
                 ],
-                'result' => [
+                'resultFields' => [
                     'title' => 'name',
                     'lead' => 'intro',
                     //'url' => fn () => '/artikelen/' . $this->slug
@@ -28,7 +29,7 @@ return [
                 ]
             ],
             'App\Models\Books\Chapter' => [
-                'fields' => [
+                'searchFields' => [
                     'name' => 10,
                     'intro' => 5,
                     'body' => 2,
@@ -41,7 +42,7 @@ return [
                             ->select('id');
                     }
                 ],
-                'result' => [
+                'resultFields' => [
 //                    'title' => 'name',
                     'title' => function () {
                         return App\Models\Books\Book::query()
@@ -55,7 +56,7 @@ return [
                 ]
             ],
             'App\Models\Articles' => [
-                'fields' => [
+                'searchFields' => [
                     'title' => 10,
                     'content' => 2,
                     'lead' => 5
@@ -63,7 +64,7 @@ return [
                 'conditions' => [
                     'active' => 1
                 ],
-                'result' => [
+                'resultFields' => [
                     'title' => 'title',
                     'lead' => 'lead',
                     //'url' => fn () => '/artikelen/' . $this->slug
@@ -88,7 +89,7 @@ return [
         ],
         'articles' => [
             'App\Models\Articles' => [
-                'fields' => [
+                'searchFields' => [
                     'title' => 10,
                     'content' => 2,
                     'lead' => 5
@@ -96,7 +97,7 @@ return [
                 'conditions' => [
                     'active' => 1
                 ],
-                'result' => [
+                'resultFields' => [
                     'title' => 'title',
                     'lead' => 'lead',
                     //'url' => fn () => '/artikelen/' . $this->slug
@@ -114,9 +115,9 @@ return [
      * global: global search in several modals
      * articles: specific search on article pages
      *
-     * fields: fields: to search with priority value (more weight when found)
+     * searchFields: fields to search with priority value (more weight when found)
      * conditions: special search conditions
-     * result: define the fields to show in the search result (view)
+     * resultFields: define the fields to show in the search result (view)
      *
      * conditions and result:
      *
@@ -126,7 +127,7 @@ return [
 //    'settings' => [
 //        'global' => [
 //            'App\Models\Articles' => [
-//                'fields' => [
+//                'searchFields' => [
 //                    'title' => 2.5,
 //                    'lead' => 2,
 //                    'body' => 1,
@@ -135,7 +136,7 @@ return [
 //                    'active' => 1,
 //                    'published' => 1,
 //                ],
-//                'result' => [
+//                'resultFields' => [
 //                    'title' => 'title',
 //                    'lead' => 'lead',
 //                    'url' => 'getSlug',
@@ -143,7 +144,7 @@ return [
 //                ]
 //            ],
 //            'App\Models\Blog' => [
-//                'fields' => [
+//                'searchFields' => [
 //                    'title' => 5,
 //                    'lead' => 2,
 //                    'body' => 0.5,
@@ -158,7 +159,7 @@ return [
 //                            ->select('id');
 //                    }
 //                ],
-//                'result' => [
+//                'resultFields' => [
 //                    'title' => 'title',
 //                    'lead' => 'lead',
 //                    'url' => fn () => '/artikelen/' . $this->slug,
@@ -166,7 +167,7 @@ return [
 //                ]
 //            ],
 //            'App\Models\Pages' => [
-//                'fields' => [
+//                'searchFields' => [
 //                    'pagetitle' => 2,
 //                    'intro' => 1,
 //                    'body' => 1,
@@ -174,7 +175,7 @@ return [
 //                'conditions' => [
 //                    'active' => 1,
 //                ],
-//                'result' => [
+//                'resultFields' => [
 //                    'title' => 'pagetitle',
 //                    'lead' => 'intro',
 //                    'url' => 'getUrl',
@@ -183,7 +184,7 @@ return [
 //        ],
 //        'articles' => [
 //            'App\Models\Articles' => [
-//                'fields' => [
+//                'searchFields' => [
 //                    'title' => 2.5,
 //                    'lead' => 2,
 //                    'body' => 1,
@@ -192,7 +193,7 @@ return [
 //                    'active' => 1,
 //                    'published' => 1,
 //                ],
-//                'result' => [
+//                'resultFields' => [
 //                    'title' => 'title',
 //                    'lead' => 'lead',
 //                    'url' => fn () => '/artikelen/' . $this->slug,

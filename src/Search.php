@@ -14,10 +14,16 @@ use Jdkweb\Search\Controllers\SearchModel;
 class Search
 {
     /**
-     * String to search on
+     * Object to handle String to search on
      * @var SearchQuery
      */
     public ?SearchQuery $searchQuery = null;
+
+    /**
+     * (Configuration) Search Preset
+     * @var string|null
+     */
+    protected ?string $presetSearchQuery = null;
 
     /**
      * Split searchQuery into array
@@ -53,17 +59,10 @@ class Search
      */
     public function get(): ?LengthAwarePaginator
     {
-        // check if preset search isset
-        if (is_null($this->searchQuery) ||
-            !empty(request()->get($this->attributes['search_query']))) {
-
-            // get search query
-            $search = request()->get($this->attributes['search_query']);
-            if (trim($search) == '') {
-                return $this->paginate(null);
-            }
-
-            $this->setSearchQuery($search);
+        // Check search status
+        if(!$this->checkStatus()) {
+            // empty
+            return $this->paginate(null);
         }
 
         // search terms
@@ -81,6 +80,27 @@ class Search
 
         // paging
         return $this->paginate($results);
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+
+    protected function checkStatus()
+    {
+        // check if preset search isset
+        if (is_null($this->searchQuery) || !empty(request()->get($this->attributes['search_query']))) {
+
+            // get search query
+            $search = request()->get($this->attributes['search_query']);
+            if (trim($search) == '') {
+                return false;
+            }
+
+            // Set searchQuery Model
+            $this->setSearchQuery($search);
+        }
+
+        return true;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -363,13 +383,24 @@ class Search
                 $this->setGetVars($set);
                 continue;
             }
-            $this->setModel($model, $set['fields']);
+            if($model == 'searchQuery') {
+                $this->setSearchQuery($set);
+                continue;
+            }
+            $this->setModel($model, $set['searchFields']);
             $this->setConditions($model, $set['conditions']);
-            $this->showResults($model, $set['result']);
+            $this->showResults($model, $set['resultFields']);
         }
 
         return $this;
     }
+
+//    //------------------------------------------------------------------------------------------------------------------
+//
+//    public function setPresetSeachQuery(string $value)
+//    {
+//        $this->presetSearchQuery = $value;
+//    }
 
     //------------------------------------------------------------------------------------------------------------------
 
