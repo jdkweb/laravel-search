@@ -227,10 +227,10 @@ It is also possible to fire a searchQuery by default.
 
 In config file
 ```php
-    'settings' => [
-        'default' => [
-            'searchQuery' => 'Adobe',           // Set default search
-            ...
+'settings' => [
+    'default' => [
+        'searchQuery' => 'Adobe',           // Set default search
+        ...
 ```
 Directly into the script
 ```php
