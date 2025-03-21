@@ -12,6 +12,7 @@ Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search
 - [Default preset search results](#Configuration-2)  
 - [Filter specific words from the search](#Configuration-3)  
 - [Methods and Closures](#Configuration-4)
+- [Compare configuration settings](#Compare)
 
 
 ## Installation
@@ -301,7 +302,8 @@ public function getSlug()
     'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')   // Arrow function                  
 ])
 ```
-## Compare settings 
+## Compare
+Compare settings
 
 Config
 ```php
@@ -333,6 +335,11 @@ Config
 ```php
 $search = app('search')->settings('SETNAME');
 $searchResult = $search->get();
+// Handle next search via GET-variable (searchQuery is overwritten)
+
+// OR combine config with direct settings 
+$search->setSearchQuery(NEW_SEARCH_WORDS);
+$newsearchResult = $search->get();
 ```
 Directly embed settings into the script
 ```php
@@ -359,6 +366,11 @@ $search = app('search')
 
 ```php
 $searchResult = $search->get();
+// Handle next search via GET-variable (setSearchQuery is overwritten)
+
+// OR insert new search words
+$search->setSearchQuery(NEW_SEARCH_WORDS);
+$newsearchResult = $search->get();
 ```
 
 
