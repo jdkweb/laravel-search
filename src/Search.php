@@ -5,6 +5,7 @@ namespace Jdkweb\Search;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Jdkweb\Search\Controllers\SearchQuery;
@@ -55,6 +56,7 @@ class Search
         // check if preset search isset
         if (is_null($this->searchQuery) ||
             !empty(request()->get($this->attributes['search_query']))) {
+
             // get search query
             $search = request()->get($this->attributes['search_query']);
             if (trim($search) == '') {
@@ -89,19 +91,46 @@ class Search
      */
     protected function runSearch(): ?array
     {
+        $key = md5(request()->path() . $this->searchQuery->getSearchQuery());
+
+        if(config('laravel-search.use_caching')) {
+            // Cache for paging result without query
+            $results = Cache::remember($key, config('laravel-search.caching_seconds'), function () {
+                return $this->runSearchQuery();
+            });
+        }
+        else {
+            $results = $this->runSearchQuery();
+        }
+
+        // Add models
+        foreach ($this->models as $model => $settings) {
+            $results[class_basename($model)]['settings'] = $settings;
+        }
+
+        return $results;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    private function runSearchQuery(): array
+    {
         $results = [];
         DB::transaction(function () use (&$results) {
 
             // Walk thru models to search
             foreach ($this->models as $model => $settings) {
-                $results[class_basename($model)]['settings'] = $settings;
+                // Start query
                 $results[class_basename($model)]['builder'] = $model::query();
 
-                // get tablename
+                // Get tablename
                 $tablename = app($model)->getTable();
 
                 // Search conditions
-                $results[class_basename($model)]['builder']->whereNested(function ($query) use ($settings, $tablename) {
+                $results[class_basename($model)]['builder']->whereNested(function ($query) use (
+                    $settings,
+                    $tablename
+                ) {
                     foreach ($settings->searchConditions as $set) {
 
                         // Add table name
@@ -111,12 +140,12 @@ class Search
                         $whereMethod = 'where';
 
                         // OR operator
-                        if($set[3] === 'or') {
-                            $whereMethod = 'or' . ucfirst($whereMethod);
+                        if ($set[3] === 'or') {
+                            $whereMethod = 'or'.ucfirst($whereMethod);
                         }
 
                         // IN operator
-                        $postfix = match($set[1]) {
+                        $postfix = match ($set[1]) {
                             'in' => "In",
                             'not_in' => "NotIn",
                             'like' => "Like",
@@ -124,7 +153,7 @@ class Search
                             default => "",
                         };
 
-                        if($postfix != '') {
+                        if ($postfix != '') {
                             $whereMethod .= $postfix;
                             unset($set[1]);
                         }
@@ -133,7 +162,7 @@ class Search
                         unset($set[3]);
 
                         // Closure
-                        if(is_a(end($set), 'Closure')) {
+                        if (is_a(end($set), 'Closure')) {
                             // Run closure
                             try {
                                 $res = call_user_func(end($set));
@@ -143,21 +172,26 @@ class Search
                             } catch (\Throwable $e) {
                                 // error in closure, not included in query
                             }
-                        }
-                        else {
+                        } else {
                             $query->{$whereMethod}(...$set);
                         }
                     }
                 });
 
                 // Search on searchquery
-                $results[class_basename($model)]['builder']->whereNested(function ($query) use ($settings, $tablename) {
+                $results[class_basename($model)]['builder']->whereNested(function ($query) use (
+                    $settings,
+                    $tablename
+                ) {
                     foreach ($settings->searchFields as $name) {
                         foreach ($this->terms as $term) {
                             $query->orWhereRaw('LOWER('.$tablename.'.'.$name.') LIKE "%'.$term.'%"');
                         }
                     }
                 });
+
+                // Result in collection
+                $results[class_basename($model)]['builder'] = $results[class_basename($model)]['builder']->get();
             }
         });
 
@@ -176,7 +210,7 @@ class Search
         $search_result = [];
         foreach ($results as $result) {
 
-            foreach ($result['builder']->get() as $row) {
+            foreach ($result['builder'] as $row) {
                 $relevance = 0;
 
                 // Walk thru each row where search words are found
@@ -322,7 +356,7 @@ class Search
 
     public function settings(string $setting): static
     {
-        $arr = config('search.settings.'.$setting);
+        $arr = config('laravel-search.settings.'.$setting);
 
         foreach ($arr as $model => $set) {
             if($model == 'variables') {

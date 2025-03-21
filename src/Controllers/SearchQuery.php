@@ -56,7 +56,7 @@ class SearchQuery
     {
         if($this->terms === null) return;
 
-        $words = explode(",", config('search.filter_words.nl'));
+        $words = explode(",", config('laravel-search.filter_words.nl'));
         $words = array_map(fn($word) => trim($word), $words);
 
         $this->terms = array_filter($this->terms, function ($term) use ($words) {
@@ -130,5 +130,15 @@ class SearchQuery
     public function getTerms(): ?array
     {
         return $this->terms;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * @return string|null
+     */
+    public function getSearchQuery(): ?string
+    {
+        return $this->searchQuery;
     }
 }

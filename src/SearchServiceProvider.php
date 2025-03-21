@@ -30,12 +30,12 @@ class SearchServiceProvider extends ServiceProvider
     {
         // php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --tag="config"
         $this->publishes([
-            dirname(__DIR__).'/config/search.php' => config_path('search.php'),
+            dirname(__DIR__).'/config/laravel-search.php' => config_path('laravel-search.php'),
         ], 'config');
 
         // When not published Load config
-        if (is_null(config('search.settings'))) {
-            $this->mergeConfigFrom(dirname(__DIR__).'/config/search.php', 'search');
+        if (is_null(config('laravel-search.settings'))) {
+            $this->mergeConfigFrom(dirname(__DIR__).'/config/laravel-search.php', 'laravel-search');
         }
     }
 }
