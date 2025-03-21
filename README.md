@@ -27,7 +27,10 @@ For configuration settings you need to publish the config
 ```bash
 php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --tag="config"
 ```
-In the config is it possible to setup serveral search-engine setting. So you can setup a global website search and in the blog a specfic blog topic search.
+In the config is needed for:
+- To setup reusable independend search-engine setting.
+- Change the list of words to filter from search
+- Change cache settings
 
 ## Usage
 ### Use config file for search engine settings
@@ -298,3 +301,66 @@ public function getSlug()
     'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')   // Arrow function                  
 ])
 ```
+## Compare settings 
+
+Config
+```php
+'settings' => [
+    'SETNAME' => [
+        'searchQuery' => SEARCHWORDS,
+        'variables' => [
+            'search_query' => 'SEARCH-GETVARNAME',  
+            'actual_page' => 'PAGE-GETVARNAME',     
+            'actual_filter' => 'FILTER-GETVARNAME'  
+        ],        
+        'MODEL\NAMESPACE' => [
+            'searchFields' => [
+                COLUMNAME => PRIORITY,
+                ...
+            ],
+            'conditions' => [
+                COLUMNNAME => VALUE | METHOD | CLOSURE,
+                ...
+            ],
+            'resultFields' => [
+                VARIABLENAME => COLUMNNAME | METHOD | CLOSURE,
+                ...
+            ]
+        ]    
+    ]
+]
+```
+```php
+$search = app('search')->settings('SETNAME');
+$searchResult = $search->get();
+```
+Directly embed settings into the script
+```php
+$search = app('search')
+    ->setSearchQuery(SEARCHWORDS);                
+    ->setGetVars([
+        'search_query' => 'SEARCH-GETVARNAME',  
+        'actual_page' => 'PAGE-GETVARNAME',     
+        'actual_filter' => 'PAGE-GETVARNAME'  
+    ])
+    ->setModel(MODEL\NAMESPACE::class, [   
+        COLUMNAME => PRIORITY,
+        ...
+    ])
+    ->setConditions(MODEL\NAMESPACE::class, [
+        COLUMNNAME => VALUE | METHOD | CLOSURE,
+        ...
+    ])
+    ->showResults(MODEL\NAMESPACE::class, [
+        VARIABLENAME => COLUMNNAME | METHOD | CLOSURE,
+        ...
+    ])
+```
+
+```php
+$searchResult = $search->get();
+```
+
+
+
+
