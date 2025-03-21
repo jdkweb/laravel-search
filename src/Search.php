@@ -345,7 +345,7 @@ class Search
             'path' => "/".request()->path(),
             'query' => [
                 $this->attributes['search_query'] => request()->get($this->attributes['search_query']),
-                $this->attributes['actual_filter'] => '', // $this->filter
+                $this->attributes['actual_filter'] => request()->get($this->attributes['actual_filter']),
             ],
         ];
 
