@@ -56,13 +56,27 @@ class SearchQuery
     {
         if($this->terms === null) return;
 
-        $words = explode(",", config('laravel-search.filter_words.nl'));
+        $local = $this->getLocale();
+
+        $words = explode(",", config('laravel-search.filter_words.' . $local));
         $words = array_map(fn($word) => trim($word), $words);
 
         $this->terms = array_filter($this->terms, function ($term) use ($words) {
             return !in_array($term, $words);
         });
 
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    protected function getLocale(): string
+    {
+        $local = app()->getLocale();
+        if(is_null(config('laravel-search.filter_words.'. $local))) {
+            $local = app()->getFallbackLocale();
+            $local = config('laravel-search.filter_words.'. $local) ?? 'en';
+        }
+        return $local;
     }
 
     //------------------------------------------------------------------------------------------------------------------
