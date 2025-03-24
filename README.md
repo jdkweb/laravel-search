@@ -109,7 +109,7 @@ Example
 ```
 The example above is a set named 'global'. This makes it possible to create multiple specific sets that behave different. In addition to a global search engine for the entire website it is posible to make a specific page related search
 
-[See example of large configuration file with methods an closures](#Configuration-3)
+[See example of large configuration file with methods an closures](#example-config)
 
 #### Using the search engine
 
