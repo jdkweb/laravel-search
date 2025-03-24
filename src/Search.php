@@ -392,7 +392,7 @@ class Search
 
             // modify uri variable keys
             if ($model == 'parameters') {
-                $this->setGetVars($set);
+                $this->setParams($set);
                 continue;
             }
 
@@ -479,7 +479,7 @@ class Search
      * @param  array  $vars
      * @return $this
      */
-    public function setGetVars(array $vars): static
+    public function setParams(array $vars): static
     {
         foreach ($this->parameters as $key => $value) {
             if (isset($vars[$key])) {

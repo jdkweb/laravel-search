@@ -315,7 +315,7 @@ Config-file
 'settings' => [
     'SETNAME' => [
         'searchQuery' => SEARCHWORDS,
-        'variables' => [
+        'parameters' => [
             'search_query' => 'SEARCH-GETVARNAME',  
             'actual_page' => 'PAGE-GETVARNAME',     
             'actual_filter' => 'FILTER-GETVARNAME'  
@@ -350,7 +350,7 @@ Directly embed settings into the script
 ```php
 $search = app('search')
     ->setSearchQuery(SEARCHWORDS);                
-    ->setGetVars([
+    ->setParams([
         'search_query' => 'SEARCH-GETVARNAME',  
         'actual_page' => 'PAGE-GETVARNAME',     
         'actual_filter' => 'PAGE-GETVARNAME'  
