@@ -402,6 +402,11 @@ $books = [
     'resultFields' => [
         'title' => 'name',
         'text' => 'intro',
+        'cover' => function() {
+            return App\Models\BookCovers::query()
+                ->where('id', $this->id)
+                ->first()            
+        }
         'url' => fn() => "/books/".getSlug($this->shortname)
     ]
 ];
@@ -447,6 +452,7 @@ $articles = [
     'resultFields' => [
         'title' => 'title',
         'text' => 'lead',
+        'thumbnail' => fn() => $this->getThumbnail(),
         'url' => fn() => "/articles/".$this->slug
     ]
 ];
