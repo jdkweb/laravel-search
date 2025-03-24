@@ -60,7 +60,7 @@ class Search
     public function get(): ?LengthAwarePaginator
     {
         // Check search status
-        if(!$this->checkStatus()) {
+        if (!$this->checkStatus()) {
             // empty
             return $this->paginate(null);
         }
@@ -111,15 +111,17 @@ class Search
      */
     protected function runSearch(): ?array
     {
-        $key = md5(request()->path() . $this->searchQuery->getSearchQuery());
+        // Key on path, search query and actual filter
+        $key = md5(request()->path() .
+            $this->searchQuery->getSearchQuery() .
+            request()->get($this->attributes['actual_filter']) ?? '');
 
-        if(config('laravel-search.use_caching')) {
+        if (config('laravel-search.use_caching')) {
             // Cache for paging result without query
             $results = Cache::remember($key, config('laravel-search.caching_seconds'), function () {
                 return $this->runSearchQuery();
             });
-        }
-        else {
+        } else {
             $results = $this->runSearchQuery();
         }
 
@@ -243,12 +245,12 @@ class Search
                     }
 
                     // skip if not in searchFields array
-                    if(!in_array($key, $result['settings']->searchFields)) {
+                    if (!in_array($key, $result['settings']->searchFields)) {
                         continue;
                     }
 
                     //json
-                    if(is_array($value)) {
+                    if (is_array($value)) {
                         $value = implode(',', $value);
                     }
 
@@ -288,7 +290,7 @@ class Search
 
                 // fill result fields for result page
                 foreach ($result['settings']->showResultFields as $key => $field) {
-                    if(is_a($field, 'Closure')) {
+                    if (is_a($field, 'Closure')) {
                         $boundClosure = \Closure::bind($field, $row);
                         $r[$key] = '';
                         try {
@@ -297,16 +299,14 @@ class Search
                             // error in closure
                             $r[$key] = '';
                         }
-                    }
-                    elseif(in_array($field, get_class_methods($row))) {
+                    } elseif (in_array($field, get_class_methods($row))) {
                         try {
                             $r[$key] = $row->{$field}();
                         } catch (\Throwable $e) {
                             // error in closure
                             $r[$key] = '';
                         }
-                    }
-                    else {
+                    } else {
                         isset($row->{$field}) ? $r[$key] = $row->{$field} : $r[$key] = '';
                     }
                 }
@@ -361,7 +361,7 @@ class Search
 
         // page check
         $page = ($page < 1) ? 1 : $page;
-        $maxPages = ceil($items->count()/$perPage);
+        $maxPages = ceil($items->count() / $perPage);
         $page = ($page > $maxPages ? $maxPages : $page);
 
         $paginator = new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page,
@@ -391,13 +391,13 @@ class Search
         foreach ($arr as $model => $set) {
 
             // modify uri variable keys
-            if($model == 'variables') {
+            if ($model == 'variables') {
                 $this->setGetVars($set);
                 continue;
             }
 
             // preset search
-            if($model == 'searchQuery') {
+            if ($model == 'searchQuery') {
                 $this->setSearchQuery($set);
                 continue;
             }
@@ -481,8 +481,8 @@ class Search
      */
     public function setGetVars(array $vars): static
     {
-        foreach ($this->attributes  as $key => $value) {
-            if(isset($vars[$key])) {
+        foreach ($this->attributes as $key => $value) {
+            if (isset($vars[$key])) {
                 $this->attributes[$key] = $vars[$key];
             }
         }
