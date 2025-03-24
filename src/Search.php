@@ -228,6 +228,7 @@ class Search
     protected function setSearchRelevance(array $results): array
     {
         $search_result = [];
+
         foreach ($results as $result) {
 
             foreach ($result['builder'] as $row) {
@@ -239,6 +240,16 @@ class Search
                     // skip id's etc.
                     if (is_numeric($value)) {
                         continue;
+                    }
+
+                    // skip if not in searchFields array
+                    if(!in_array($key, $result['settings']->searchFields)) {
+                        continue;
+                    }
+
+                    //json
+                    if(is_array($value)) {
+                        $value = implode(',', $value);
                     }
 
                     // Calculate the similarity between two strings
@@ -277,7 +288,6 @@ class Search
 
                 // fill result fields for result page
                 foreach ($result['settings']->showResultFields as $key => $field) {
-
                     if(is_a($field, 'Closure')) {
                         $boundClosure = \Closure::bind($field, $row);
                         $r[$key] = '';
