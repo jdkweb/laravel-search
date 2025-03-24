@@ -382,12 +382,14 @@ $newsearchResult = $search->get();
 ```php
 <?php
 
+// Settings URL parameters 
 $parameters = [
     'search_query' => 'search',
     'actual_page' => 'page',
     'actual_filter' => 'filter'
 ];
 
+// App\Models\Books for searching
 $books = [
     'searchFields' => [
         'name' => 3,
@@ -404,6 +406,7 @@ $books = [
     ]
 ];
 
+// App\Models\Chapters (related to Books) for searching
 $chapter = [
     'searchFields' => [
         'name' => 3,
@@ -430,6 +433,7 @@ $chapter = [
     ]
 ];
 
+// App\Models\Articles for searching
 $articles = [
     'searchFields' => [
         'title' => 3,
@@ -447,7 +451,7 @@ $articles = [
     ]
 ];
 
-
+// App\Models\Pages for searching
 $pages = [
     'searchFields' => [
         'title' => 3,
