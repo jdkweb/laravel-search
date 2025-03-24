@@ -389,14 +389,20 @@ class Search
         $arr = config('laravel-search.settings.'.$setting);
 
         foreach ($arr as $model => $set) {
+
+            // modify uri variable keys
             if($model == 'variables') {
                 $this->setGetVars($set);
                 continue;
             }
+
+            // preset search
             if($model == 'searchQuery') {
                 $this->setSearchQuery($set);
                 continue;
             }
+
+            // handle search settings
             $this->setModel($model, $set['searchFields']);
             $this->setConditions($model, $set['conditions']);
             $this->showResults($model, $set['resultFields']);
@@ -404,13 +410,6 @@ class Search
 
         return $this;
     }
-
-//    //------------------------------------------------------------------------------------------------------------------
-//
-//    public function setPresetSeachQuery(string $value)
-//    {
-//        $this->presetSearchQuery = $value;
-//    }
 
     //------------------------------------------------------------------------------------------------------------------
 
