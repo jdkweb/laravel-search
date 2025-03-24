@@ -1,5 +1,5 @@
 # laravel-search
-Laravel-Search is a search-engine using the models. Search easily, flexible add an intelligent on your Laravel website or application.
+Laravel-Search is a search-engine using the models. Search easily, flexible add intelligent on your Laravel website or application.
 
 Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search) 
 
@@ -7,12 +7,16 @@ Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Configuration](#configuration)
-  - [Configuration directly embed settings in script](#Configuration-1)
-- [Default preset search results](#Configuration-2)  
-- [Filter specific words from the search](#Configuration-3)  
-- [Methods and Closures](#Configuration-4)
-- [Compare configuration settings](#Compare)
+  - [Configuration with config-file](#configuration-with-config-file)
+    - [Using the search engine](#using-the-search-engine) 
+    - [Filters, search groups](#filters-search-groups)
+    - [Rename query strings parameters](#rename-query-strings-parameters)
+    - [Preset search words](#preset-search-words)
+  - [Configuration directly embed settings in script](#configuration-directly-embed-settings-in-script) 
+- [Filter specific words from the search](#filter-specific-words-from-the-search)  
+- [Methods and Closures](#methods-and-closures)
+- [Compare configuration settings](#compare-configuration-setting)
+- [Example Config](#example-config)
 
 
 ## Installation
@@ -34,39 +38,54 @@ In the config is needed for:
 - Change cache settings
 
 ## Usage
-### Use config file for search engine settings
-##### Configuration 
+### Configuration with config file
 Publish the config first.
 
 - Define the models used in search engine 
 - set default search conditions 
 - define the output variables.
 
-Configurate a model for searching
+Base configuration for the search engine in the config-file
+```php
+'settings' => [    
+    '[CONFIG-NAME]' => [                      // Engine configuration name
+        'searchQuery' => '[PRESET SEARCH]',   // Optional: preset search words, results directly shown
+        'parameters' => [                     // Optional: specific names query strings parameters           
+            'search_query' => '[NAME]',       // search terms, default: q
+            'actual_page' => '[NAME]',        // result page, default: p
+            'actual_filter' => '[NAME]'       // result filter, default: f
+        ],    
+        // Model configuration
+        ...
+    ]
+]
+```
+
+Model configuration
 ```php
 [
-    'MODEL\NAMESPACE' => [
+    '[MODEL\NAMESPACE]' => [
         'searchFields' => [
-            COLUMNAME => PRIORITY,
+            [COLUMNAME] => [PRIORITY],
             ...
         ],
         'conditions' => [
-            COLUMNNAME => VALUE | METHOD | CLOSURE,
+            [COLUMNNAME] => [VALUE | METHOD | CLOSURE],
             ...
         ],
         'resultFields' => [
-            VARIABLENAME => COLUMNNAME | METHOD | CLOSURE,
+            [VARIABLENAME] => [COLUMNNAME | METHOD | CLOSURE],
             ...
         ]
 ]    
     ]
 ]
 ```
-In this example one model (Articles) is defined in a set named 'global'.
+Example
 ```php
 'settings' => [    
     'global' => [                       // Settings name 'global'
-        'searchQuery' => 'linux',       // Optional: preset search words, results directly shown
+        'searchQuery' => 'linux',       // Preset search 'linux'
         'App\Models\Articles' => [      // Model to search: 'Articles'
             'searchFields' => [         
                 'title' => 2.5,         // Column: title,  priority: 2.5 (extra weight) 
@@ -92,7 +111,7 @@ The example above is a set named 'global'. This makes it possible to create mult
 
 [See example of large configuration file with methods an closures](#Configuration-3)
 
-**Use:**
+#### Using the search engine
 
 Laravel-search is working with GET variables ([can be renamed](#rename))
 ```php
@@ -127,7 +146,7 @@ $result = $search->get();
   2 => array:6 [▶]
   3 => array:6 [▶]
 ```
-#### Filters
+#### Filters (search groups)
 ![use result filters](./images/search-filters.webp)
 Use specific model or group of models for searching
 ```php
@@ -147,7 +166,7 @@ $search = match($filter) {
 $result = $search->get();
 ```
 
-#### Rename
+#### Rename query strings parameters
 Renaming the GET variables that appear in the URL
 ```php
 // Default
@@ -169,8 +188,18 @@ search?search=some search words&page=1&filter=articles
             ...  
 ```
 
-### Directly embed settings into the script
-##### Configuration
+### Preset search words
+It is possible to fire a searchQuery by default.
+
+In config file
+```php
+'settings' => [
+    'default' => [
+        'searchQuery' => 'Adobe',           // Set default search
+        ...
+```
+
+### Configuration directly embed settings in script
 Without using a config file 
 ```php
 $search = app('search')
@@ -219,29 +248,7 @@ $search = app('search')
 }
 ```
 
-### Preset search words
-##### Configuration
-Laravel search is getting the searchQuery form a GET variable.
-
-It is also possible to fire a searchQuery by default.
-
-In config file
-```php
-'settings' => [
-    'default' => [
-        'searchQuery' => 'Adobe',           // Set default search
-        ...
-```
-Directly into the script
-```php
-$search = app('search')
-    ->setSearchQuery('Adobe')                   // Set default search
-    ... 
-```
-
-
 ### Filter specific words from the search
-##### Configuration
 Language related list of words that are filtered from the search
 
 Removing Linking words (the, and, ...) makes it possible to keep the search results cleaner.
@@ -254,11 +261,10 @@ Removing Linking words (the, and, ...) makes it possible to keep the search resu
 ]
 ```
 
-### Use methods and Closures in the config file
-##### Configuration
+### Methods and Closures
 The configurations above provide several examples of using methods and Closures.
 
-This makes it possible to relate the models to be used to each other or to use external data in the search results.
+This makes it possible to relate the models to Closure functions, and methods form (other) models or controllers.
 
 #### Methods
 In config file
@@ -302,10 +308,9 @@ public function getSlug()
     'date' => fn () => \Carbon\Carbon::parse($this->created_at)->format('d/m/Y')   // Arrow function                  
 ])
 ```
-## Compare
-Compare settings
+## Compare configuration settings
 
-Config
+Config-file
 ```php
 'settings' => [
     'SETNAME' => [
@@ -373,6 +378,113 @@ $search->setSearchQuery(NEW_SEARCH_WORDS);
 $newsearchResult = $search->get();
 ```
 
+### Example config
+```php
+<?php
 
+$parameters = [
+    'search_query' => 'search',
+    'actual_page' => 'page',
+    'actual_filter' => 'filter'
+];
+
+$books = [
+    'searchFields' => [
+        'name' => 3,
+        'body' => 2,
+        'intro' => 2
+    ],
+    'conditions' => [
+        'active' => 1,
+    ],
+    'resultFields' => [
+        'title' => 'name',
+        'text' => 'intro',
+        'url' => fn() => "/books/".getSlug($this->shortname)
+    ]
+];
+
+$chapter = [
+    'searchFields' => [
+        'name' => 3,
+        'intro' => 3,
+        'body' => 2,
+    ],
+    'conditions' => [
+        'active' => 1,
+        'book_id:in' => function () {
+            return App\Models\Book::query()
+                ->where('active', 1)
+                ->select('id');
+        }
+    ],
+    'resultFields' => [
+        'title' => 'name',
+        'bookname' => function () {
+            return App\Models\Book::query()
+                ->where('id', $this->book_id)
+                ->select('name')->first()->name;
+        },
+        'text' => 'intro',
+        'url' => 'getSlug'
+    ]
+];
+
+$articles = [
+    'searchFields' => [
+        'title' => 3,
+        'lead' => 2,
+        'content' => 1,
+    ],
+    'conditions' => [
+        'active' => 1,
+        'published:<' => time()
+    ],
+    'resultFields' => [
+        'title' => 'title',
+        'text' => 'lead',
+        'url' => fn() => "/articles/".$this->slug
+    ]
+];
+
+
+$pages = [
+    'searchFields' => [
+        'title' => 3,
+        'introduction' => 3,
+        'content' => 2
+    ],
+    'conditions' => [
+        'active' => 1,
+        'parent_id:!=' => 88
+    ],
+    'resultFields' => [
+        'title' => 'title',
+        'text' => 'introduction',
+        'url' => fn() => "/pages/".getSlug($this->name)
+    ]
+];
+
+return [
+    'settings' => [
+        'global' => [                                       // Global search on search page on the website
+            'parameters' => $parameters,
+            'App\Models\Articles' => $articles,         
+            'App\Models\Pages' => $pages
+            'App\Models\Books\Book' => $books,
+            'App\Models\Books\Chapter' => $chapter
+        ],
+        'books' => [                                        // searching in books and chapters
+            'parameters' => $parameters,
+            'App\Models\Books\Book' => $books,
+            'App\Models\Books\Chapter' => $chapter,
+        ],
+        'articles' => [                                     // searching in articles
+            'parameters' => $parameters,
+            'App\Models\Articles' => $articles,
+        ]
+    ]
+];
+```
 
 

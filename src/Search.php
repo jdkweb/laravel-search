@@ -42,7 +42,7 @@ class Search
      * query components in request url
      * @var array|string[]
      */
-    protected array $attributes = [
+    protected array $parameters = [
         'search_query' => 'q',
         'actual_page' => 'p',
         'actual_filter' => 'f',
@@ -88,10 +88,10 @@ class Search
     protected function checkStatus()
     {
         // check if preset search isset
-        if (is_null($this->searchQuery) || !empty(request()->get($this->attributes['search_query']))) {
+        if (is_null($this->searchQuery) || !empty(request()->get($this->parameters['search_query']))) {
 
             // get search query
-            $search = request()->get($this->attributes['search_query']);
+            $search = request()->get($this->parameters['search_query']);
             if (trim($search) == '') {
                 return false;
             }
@@ -114,7 +114,7 @@ class Search
         // Key on path, search query and actual filter
         $key = md5(request()->path() .
             $this->searchQuery->getSearchQuery() .
-            request()->get($this->attributes['actual_filter']) ?? '');
+            request()->get($this->parameters['actual_filter']) ?? '');
 
         if (config('laravel-search.use_caching')) {
             // Cache for paging result without query
@@ -349,13 +349,13 @@ class Search
      */
     protected function paginate($items, $perPage = 10, $page = null, $options = []): LengthAwarePaginator
     {
-        $page = $page ?? request()->get($this->attributes['actual_page']) ?? (Paginator::resolveCurrentPage() ?: 1);
+        $page = $page ?? request()->get($this->parameters['actual_page']) ?? (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
         $options = [
             'path' => "/".request()->path(),
             'query' => [
-                $this->attributes['search_query'] => request()->get($this->attributes['search_query']),
-                $this->attributes['actual_filter'] => request()->get($this->attributes['actual_filter']),
+                $this->parameters['search_query'] => request()->get($this->parameters['search_query']),
+                $this->parameters['actual_filter'] => request()->get($this->parameters['actual_filter']),
             ],
         ];
 
@@ -366,7 +366,7 @@ class Search
 
         $paginator = new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page,
             $options);
-        $paginator->setPageName($this->attributes['actual_page']);
+        $paginator->setPageName($this->parameters['actual_page']);
         return $paginator;
     }
 
@@ -391,7 +391,7 @@ class Search
         foreach ($arr as $model => $set) {
 
             // modify uri variable keys
-            if ($model == 'variables') {
+            if ($model == 'parameters') {
                 $this->setGetVars($set);
                 continue;
             }
@@ -481,9 +481,9 @@ class Search
      */
     public function setGetVars(array $vars): static
     {
-        foreach ($this->attributes as $key => $value) {
+        foreach ($this->parameters as $key => $value) {
             if (isset($vars[$key])) {
-                $this->attributes[$key] = $vars[$key];
+                $this->parameters[$key] = $vars[$key];
             }
         }
 
