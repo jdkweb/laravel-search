@@ -34,7 +34,7 @@ class SearchQuery
     public function setSearchQuery(?string $value)
     {
         $this->searchQuery = urldecode($value);
-        $this->searchQuery = preg_replace("/&#?[a-z0-9]{2,8};/i","",htmlentities($this->searchQuery));
+        $this->searchQuery = preg_replace("/&#?[a-z0-9]{2,8};/i", "", htmlentities($this->searchQuery));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -54,7 +54,9 @@ class SearchQuery
      */
     protected function filterWords(): void
     {
-        if($this->terms === null) return;
+        if ($this->terms === null) {
+            return;
+        }
 
         $local = $this->getLocale();
 
@@ -64,7 +66,6 @@ class SearchQuery
         $this->terms = array_filter($this->terms, function ($term) use ($words) {
             return !in_array($term, $words);
         });
-
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -72,7 +73,7 @@ class SearchQuery
     protected function getLocale(): string
     {
         $local = app()->getLocale();
-        if(is_null(config('laravel-search.filter_words.'. $local))) {
+        if (is_null(config('laravel-search.filter_words.'. $local))) {
             $local = app()->getFallbackLocale();
             $local = config('laravel-search.filter_words.'. $local) ?? 'en';
         }

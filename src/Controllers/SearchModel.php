@@ -31,8 +31,7 @@ class SearchModel
     public function __construct(
         public string $namespace,
         array $searchFields = []
-    )
-    {
+    ) {
         $this->setSearchFields($searchFields);
     }
 
@@ -52,7 +51,7 @@ class SearchModel
 
     public function setSearchFields(array $searchFields)
     {
-        foreach($searchFields as $field=>$priority) {
+        foreach ($searchFields as $field => $priority) {
             $this->setSearchField($field);
             $this->setSearchFieldPriority($field, $priority);
         }
@@ -103,7 +102,7 @@ class SearchModel
     {
         foreach ($searchConditions as $key => $value) {
             $condition = $this->setSearchCondition($key, $value);
-            if(!is_null($condition)) {
+            if (!is_null($condition)) {
                 $this->searchConditions[] = $condition;
             }
         }
@@ -118,28 +117,30 @@ class SearchModel
      * @param  mixed  $value
      * @return array|null
      */
-    public function setSearchCondition(string $key,  mixed $value): ?array
+    public function setSearchCondition(string $key, mixed $value): ?array
     {
         // base operator
         $operator = "=";
 
         // check prefix (orWhere)
         $or = '';
-        if(preg_match("/^or:(.*)$/",$key)) {
+        if (preg_match("/^or:(.*)$/", $key)) {
             $or = 'OR';
             $key = substr($key, 3);
         }
 
         // check suffix
-        if(preg_match("/:/",$key)) {
-            list($key, $operator) = preg_split("/:/",$key);
+        if (preg_match("/:/", $key)) {
+            list($key, $operator) = preg_split("/:/", $key);
         }
 
         // Check operator
         $operator = array_filter($this->allowedOperators, function ($row) use ($operator) {
             return in_array(strtolower($operator), $row, true);
         });
-        if(!is_array($operator) || count($operator) > 1) return null;
+        if (!is_array($operator) || count($operator) > 1) {
+            return null;
+        }
 
         // Get operator
         $operator = key($operator);

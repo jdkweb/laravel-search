@@ -89,7 +89,6 @@ class Search
     {
         // check if preset search isset
         if (is_null($this->searchQuery) || !empty(request()->get($this->parameters['search_query']))) {
-
             // get search query
             $search = request()->get($this->parameters['search_query']);
             if (trim($search) == '') {
@@ -154,7 +153,6 @@ class Search
                     $tablename
                 ) {
                     foreach ($settings->searchConditions as $set) {
-
                         // Add table name
                         $set[0] = $tablename.'.'.$set[0];
 
@@ -230,13 +228,11 @@ class Search
         $search_result = [];
 
         foreach ($results as $result) {
-
             foreach ($result['builder'] as $row) {
                 $relevance = 0;
 
                 // Walk thru each row where search words are found
                 foreach ($row->toArray() as $key => $value) {
-
                     // skip id's etc.
                     if (is_numeric($value)) {
                         continue;
@@ -261,7 +257,6 @@ class Search
 
                     // each word
                     foreach ($this->terms as $term) {
-
                         if (Str::contains($value, $term)) {
                             $relevance += $extra_relevance;
                         }
@@ -362,8 +357,13 @@ class Search
         $maxPages = ceil($items->count() / $perPage);
         $page = ($page > $maxPages ? $maxPages : $page);
 
-        $paginator = new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page,
-            $options);
+        $paginator = new LengthAwarePaginator(
+            $items->forPage($page, $perPage),
+            $items->count(),
+            $perPage,
+            $page,
+            $options
+        );
         $paginator->setPageName($this->parameters['actual_page']);
         return $paginator;
     }
@@ -382,12 +382,16 @@ class Search
         return $this;
     }
 
+    /**
+     * Load settings form config
+     * @param  string  $setting
+     * @return $this
+     */
     public function settings(string $setting): static
     {
         $arr = config('laravel-search.settings.'.$setting);
 
         foreach ($arr as $model => $set) {
-
             // modify uri variable keys
             if ($model == 'parameters') {
                 $this->setParams($set);
