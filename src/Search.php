@@ -227,12 +227,16 @@ class Search
     {
         $search_result = [];
 
+        // result => builder & settings
         foreach ($results as $result) {
+            $priority = $result['settings']->searchFieldsPriority;
+
             foreach ($result['builder'] as $row) {
                 $relevance = 0;
 
                 // Walk thru each row where search words are found
                 foreach ($row->toArray() as $key => $value) {
+                    $value = trim(strtolower($value));
                     // skip id's etc.
                     if (is_numeric($value)) {
                         continue;
@@ -243,7 +247,7 @@ class Search
                         continue;
                     }
 
-                    //json
+                    // if json
                     if (is_array($value)) {
                         $value = implode(',', $value);
                     }
@@ -258,19 +262,13 @@ class Search
                     // each word
                     foreach ($this->terms as $term) {
                         if (Str::contains($value, $term)) {
-                            $relevance += $extra_relevance;
+                            $relevance += $extra_relevance * $priority[$key];
                         }
                     }
 
                     // all words
                     if (Str::containsAll($value, $this->terms)) {
                         $relevance += $extra_relevance;
-                    }
-
-                    // Priority multiply the relevance
-                    if (in_array($key, $result['settings']->searchFields)) {
-                        $prio = $result['settings']->searchFieldsPriority[$key];
-                        $relevance = $relevance * $prio;
                     }
                 }
 
@@ -307,6 +305,14 @@ class Search
                 $search_result[] = $r;
             }
         }
+
+        // Sorteren op relevance
+        $keys = array_column($search_result, 'relevance');
+        array_multisort(
+          $keys,
+            SORT_DESC,
+            $search_result
+        );
 
         return $search_result;
     }
