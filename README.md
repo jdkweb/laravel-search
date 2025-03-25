@@ -1,7 +1,8 @@
 # laravel-search
 Laravel-Search is a search-engine using the models. Search easily, flexible add intelligent on your Laravel website or application.
 
-Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search) 
+Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search)\
+Github: [laravel-search](https://github.com/jdkweb/laravel-search)
 
 ## Table of contents
 
@@ -34,7 +35,7 @@ For configuration settings you need to publish the config
 php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --tag="config"
 ```
 In the config is needed for:
-- To setup reusable independend search-engine setting.
+- To setup reusable independent search-engine setting.
 - Change the list of words to filter from search
 - Change cache settings
 
@@ -271,7 +272,7 @@ In the search conditions is it possible to use operators
 ```php
 'conditions' => [    
     'book_id:!in' => function () {
-        return App\Models\Books\Book::query()
+        return App\Models\Book::query()
             ->where('active', 0)
             ->where('published', 0)
             ->select('id');
@@ -349,24 +350,24 @@ public function getSlug()
 Config-file
 ```php
 'settings' => [
-    'SETNAME' => [
-        'searchQuery' => SEARCHWORDS,
+    '[CONFIG-NAME]' => [
+        'searchQuery' => [PRESET SEARCH],
         'parameters' => [
-            'search_query' => 'SEARCH-GETVARNAME',  
-            'actual_page' => 'PAGE-GETVARNAME',     
-            'actual_filter' => 'FILTER-GETVARNAME'  
+            'search_query' => '[NAME]',  
+            'actual_page' => '[NAME]',     
+            'actual_filter' => '[NAME]'  
         ],        
         'MODEL\NAMESPACE' => [
             'searchFields' => [
-                COLUMNAME => PRIORITY,
+                [COLUMNAME] => [PRIORITY],
                 ...
             ],
             'conditions' => [
-                COLUMNNAME => VALUE | METHOD | CLOSURE,
+                [COLUMNNAME] => [VALUE | METHOD | CLOSURE],
                 ...
             ],
             'resultFields' => [
-                VARIABLENAME => COLUMNNAME | METHOD | CLOSURE,
+                [VARIABLENAME] => [COLUMNNAME | METHOD | CLOSURE],
                 ...
             ]
         ]    
@@ -374,33 +375,33 @@ Config-file
 ]
 ```
 ```php
-$search = app('search')->settings('SETNAME');
+$search = app('search')->settings('[CONFIG-NAME]');
 $searchResult = $search->get();
 // Handle next search via GET-variable (searchQuery is overwritten)
 
 // OR combine config with direct settings 
-$search->setSearchQuery(NEW_SEARCH_WORDS);
+$search->setSearchQuery([NEW SEARCH_WORDS]);
 $newsearchResult = $search->get();
 ```
 Directly embed settings into the script
 ```php
 $search = app('search')
-    ->setSearchQuery(SEARCHWORDS);                
+    ->setSearchQuery([PRESET SEARCH]);                
     ->setParams([
-        'search_query' => 'SEARCH-GETVARNAME',  
-        'actual_page' => 'PAGE-GETVARNAME',     
-        'actual_filter' => 'PAGE-GETVARNAME'  
+        'search_query' => '[NAME]',  
+        'actual_page' => '[NAME]',     
+        'actual_filter' => '[NAME]'  
     ])
-    ->setModel(MODEL\NAMESPACE::class, [   
-        COLUMNAME => PRIORITY,
+    ->setModel([MODEL\NAMESPACE]::class, [   
+        [COLUMNAME] => [PRIORITY],
         ...
     ])
-    ->setConditions(MODEL\NAMESPACE::class, [
-        COLUMNNAME => VALUE | METHOD | CLOSURE,
+    ->setConditions([MODEL\NAMESPACE]::class, [
+        [COLUMNNAME] => [VALUE | METHOD | CLOSURE],
         ...
     ])
-    ->showResults(MODEL\NAMESPACE::class, [
-        VARIABLENAME => COLUMNNAME | METHOD | CLOSURE,
+    ->showResults([MODEL\NAMESPACE]::class, [
+        [VARIABLENAME] => [COLUMNNAME | METHOD | CLOSURE],
         ...
     ])
 ```
@@ -410,7 +411,7 @@ $searchResult = $search->get();
 // Handle next search via GET-variable (setSearchQuery is overwritten)
 
 // OR insert new search words
-$search->setSearchQuery(NEW_SEARCH_WORDS);
+$search->setSearchQuery([NEW SEARCH WORDS]);
 $newsearchResult = $search->get();
 ```
 
