@@ -417,6 +417,9 @@ $newsearchResult = $search->get();
 
 ### Example config
 A setup for three different search engine configurations, each in a other situation with more specific search results
+- Global website search
+- Book / Chapter search
+- Article searching
 ```php
 <?php
 
