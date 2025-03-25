@@ -259,11 +259,11 @@ In the search conditions is it possible to use operators
 |                    |                       | 'id:neq' => 10               |
 | **\>**<br/> gt         | Greater than          | 'age:>' => 35                |
 | **\>=**<br/> gte       | Greater than or equal | 'age:gte' => 35              | ->where('age', '>=', 35)
-| **\<**<br/> lt         | Less than             | 'age:<' => 12                |
+| **\<**<br/> lt         | Less than             | 'age:<' => 12                | ->where('age', '<', 12)
 | **\<=**<br/> lte       | Less than or equal    | 'age:lte' => 12              |
 | **in**             | In                    | 'id:in' => [10,11,12]        |
 | **!in**<br/> notin     | Not in                | 'age:!in' => [2,4]           | ->whereIn('age',[2,4])
-| **like**           | Like                  | 'title:like' => '%Linux%'    |
+| **like**           | Like                  | 'title:like' => '%Linux%'    | ->where('title', 'LIKE', '%linux%')
 | **!like**<br/> notlike | Not like              | 'title:notlike' => '%linux%' | ->where('title', 'NOT LIKE', '%linux%')
 | **or**             | Or                    | 'or:published' => 1          | ->orWhere('published', 1)
 |                    | Or                    | 'or:id:in' => [10,11]        | ->orWhereIn('id', [10,11]])
