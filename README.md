@@ -13,6 +13,7 @@ Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search
     - [Rename query strings parameters](#rename-query-strings-parameters)
     - [Preset search words](#preset-search-words)
   - [Configuration directly embed settings in script](#configuration-directly-embed-settings-in-script) 
+- [Operators for conditions](#operators-for-conditions)  
 - [Filter specific words from the search](#filter-specific-words-from-the-search)  
 - [Methods and Closures](#methods-and-closures)
 - [Compare configuration settings](#compare-configuration-setting)
@@ -247,6 +248,29 @@ $search = app('search')
     ]);
 }
 ```
+### Operators for conditions
+In the search conditions is it possible to use operators
+
+| Operator       | Type                  | Example                      | Query            |
+|----------------|-----------------------|------------------------------|------------------| 
+| default, =, eq | Equal                 | 'id' => 10  (default)        | ->where('id',10) 
+|                |                       | 'id:=' => 10                 |
+| !=, !eq, neq   | Unequal               | 'id:!=' => 10                | ->where('id','!=', 10)
+|                |                       | 'id:neq' => 10               |
+| \>, gt         | Greater than          | 'age:>' => 35                |
+| \>=, gte       | Greater than or equal | 'age:gte' => 35              | ->where('age', '>=', 35)
+| \<, lt         | Less than             | 'age:<' => 12                |
+| \<=, lte       | Less than or equal    | 'age:lte' => 12              |
+| in             | In                    | 'id:in' => [10,11,12]        |
+| !in, notin     | Not in                | 'age:!in' => [2,4]           | ->whereIn('age',[2,4])
+| like           | Like                  | 'title:like' => '%Linux%'    |
+| !like, notlike | Not like              | 'title:notlike' => '%linux%' | ->where('title', 'NOT LIKE', '%linux%')
+| or             | Or                    | 'or:published' => 1          | ->orWhere('published', 1)
+|                | Or                    | 'or:id:in' => [10,11]        | ->orWhereIn('id', [10,11]])
+
+
+
+  
 
 ### Filter specific words from the search
 Language related list of words that are filtered from the search

@@ -162,16 +162,14 @@ class Search
                         $whereMethod = 'where';
 
                         // OR operator
-                        if ($set[3] === 'or') {
+                        if ($set[3] === 'OR') {
                             $whereMethod = 'or'.ucfirst($whereMethod);
                         }
 
-                        // IN operator
+                        // IN / LIKE operators
                         $postfix = match ($set[1]) {
-                            'in' => "In",
-                            'not_in' => "NotIn",
-                            'like' => "Like",
-                            'notlike' => "NotLike",
+                            'IN' => "In",
+                            'NOT IN' => "NotIn",
                             default => "",
                         };
 

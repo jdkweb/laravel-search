@@ -12,7 +12,19 @@ class SearchModel
 
     public array $showResultFields = [];
 
-    private array $allowedOperators = ['in','!in','or','like','!like','!=','=','>','>=','<','<='];
+    private array $allowedOperators = [
+        'IN'        => ['in'],
+        'NOT IN'    => ['!in','notin'],
+        'LIKE'      => ['like'],
+        'NOT LIKE'  => ['!like','notlike'],
+        '!='        => ['!eq','!=','neq'],
+        '='         => ['eq','='],
+        '>'         => ['gt','>'],
+        '>='        => ['gte','>='],
+        '<'         => ['lt','<'],
+        '<='        => ['lte','<='],
+        'OR'        => ['or'],
+    ];
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -114,7 +126,7 @@ class SearchModel
         // check prefix (orWhere)
         $or = '';
         if(preg_match("/^or:(.*)$/",$key)) {
-            $or = 'or';
+            $or = 'OR';
             $key = substr($key, 3);
         }
 
@@ -124,10 +136,13 @@ class SearchModel
         }
 
         // Check operator
-        if(!in_array($operator, $this->allowedOperators)) return null;
+        $operator = array_filter($this->allowedOperators, function ($row) use ($operator) {
+            return in_array(strtolower($operator), $row, true);
+        });
+        if(!is_array($operator) || count($operator) > 1) return null;
 
-        // Translate ! to not (for in and like)
-        $operator = preg_replace("/^(!)(in|like)$/i",'not ${2}', $operator);
+        // Get operator
+        $operator = key($operator);
 
         return [$key, $operator, $value, $or];
     }
