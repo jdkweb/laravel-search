@@ -253,7 +253,7 @@ In the search conditions is it possible to use operators
 
 | Operator       | Type                  | Example                      | Query            |
 |----------------|-----------------------|------------------------------|------------------| 
-| default, =, eq | Equal                 | 'id' => 10  (default)        | ->where('id',10) 
+|  =, eq         | Equal                 | 'id' => 10  (default)        | ->where('id',10) 
 |                |                       | 'id:=' => 10                 |
 | !=, !eq, neq   | Unequal               | 'id:!=' => 10                | ->where('id','!=', 10)
 |                |                       | 'id:neq' => 10               |
@@ -267,6 +267,18 @@ In the search conditions is it possible to use operators
 | !like, notlike | Not like              | 'title:notlike' => '%linux%' | ->where('title', 'NOT LIKE', '%linux%')
 | or             | Or                    | 'or:published' => 1          | ->orWhere('published', 1)
 |                | Or                    | 'or:id:in' => [10,11]        | ->orWhereIn('id', [10,11]])
+
+```php
+'conditions' => [    
+    'book_id:!in' => function () {
+        return App\Models\Books\Book::query()
+            ->where('active', 0)
+            ->where('published', 0)
+            ->select('id');
+    }
+    'or:preview' => 1
+],
+```
 
 
 
