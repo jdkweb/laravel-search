@@ -4,6 +4,8 @@ Laravel-Search is a search-engine using the models. Search easily, flexible add 
 Packagist: [laravel-search](https://packagist.org/packages/jdkweb/laravel-search)\
 Github: [laravel-search](https://github.com/jdkweb/laravel-search)
 
+![use result filters](./images/laravel-search.webp)
+
 ## Table of contents
 
 - [Installation](#installation)
