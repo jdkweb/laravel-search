@@ -233,14 +233,14 @@ $search = app('search')
     ])
     ->setConditions(\App\Models\User::class, [
         'active' => 1,                          // active must be true
-        'public:in' => function () {            // public value must be available in Public-table
+        'public:in' => function () {            // public value must be available, from Public model
             return App\Models\Public::query()
                 ->where('active', 1)
                 ->select('id');
         }
     ])
     ->showResults(\App\Models\User::class, [
-        'title' => function () {                // show name of user with the company name (from other table)
+        'title' => function () {                // show name of user with the company name (from an other model)
             $company_name = App\Models\Companies::query()
                 ->where('user_id', $this->id)
                 ->select('company_name')->first()->company_name        
