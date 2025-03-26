@@ -117,7 +117,7 @@ The example above is a set named 'global'. This makes it possible to create mult
 
 #### Using the search engine
 
-Laravel-search is working with GET variables ([can be renamed](#rename))
+Laravel-search is working with GET variables ([query strings parameters can be renamed](#rename-query-strings-parameters))
 ```php
 search?q=some search words 
 ```
