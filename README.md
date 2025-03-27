@@ -1,10 +1,14 @@
 # laravel Search
+[![Packagist Version](https://img.shields.io/packagist/v/jdkweb/rdw-api-filament)](https://github.com/jdkweb/rdw-api-filament)
+[![Static Badge](https://img.shields.io/badge/build-%20%3E%3D%208.1-brightgreen?style=flat&logo=php&logoSize=16&label=PHP)](https://github.com/jdkweb/rdw-api-filament) 
+[![Static Badge](https://img.shields.io/badge/build-%20%3E%3D%2010-slategray?style=flat-square&logo=laravel&logoColor=white&logoSize=16&label=Laravel)](https://github.com/jdkweb/rdw-api-filament)
+
 Laravel-Search is a search-engine using the models. Search easily, flexible add intelligent on your Laravel website or application.
 
-Packagist: [laravel-search](https://packagist.org/packages/jdkweb/search)\
-Github: [laravel-search](https://github.com/jdkweb/laravel-search)
+[![Static Badge](https://img.shields.io/badge/build-jdkweb%2Fsearch-blue?style=flat-square&logo=github&label=Github)](https://github.com/jdkweb/search)
+[![Static Badge](https://img.shields.io/badge/build-jdkweb%2Fsearch-blue?style=flat-square&logo=packagist&logoColor=white&label=Packagist)](https://packagist.org/packages/jdkweb/search)
 
-![laravel search](./images/laravel-search.webp)
+![laravel search](https://www.jdkweb.nl/git/images/laravel-search.webp)
 
 ## Table of contents
 
@@ -151,7 +155,7 @@ $result = $search->get();
   3 => array:6 [▶]
 ```
 #### Filters (search groups)
-![use result filters](./images/search-filters.webp)
+![use result filters](https://www.jdkweb.nl/git/images/search-filters.webp)
 Use specific model or group of models for searching
 ```php
 // available filters
