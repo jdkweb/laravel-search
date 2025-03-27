@@ -258,22 +258,22 @@ $search = app('search')
 ### Operators for conditions
 In the search conditions is it possible to use operators
 
-| Operator                      | Type                   | Example                         | Query                                         |
-|-------------------------------|------------------------|---------------------------------|-----------------------------------------------| 
-| =, <wbr/>eq                   | Equal                  | 'id' => 10  (default)           | ->where('id',10)                              
+| Operator                      | Type                   | Example                         | Query Builder                           |
+|-------------------------------|------------------------|---------------------------------|-----------------------------------------| 
+| =, <wbr/>eq                   | Equal                  | 'id' => 10  (default)           | ->where('id',10)                        
 |                               |                        | 'id:=' => 10                    |
-| **!=**,<wbr/> !eq,<wbr/> neq  | Unequal                | 'id:!=' => 10                   | ->where('id','!=', 10)                        
+| **!=**,<wbr/> !eq,<wbr/> neq  | Unequal                | 'id:!=' => 10                   | ->where('id','!=', 10)                  
 |                               |                        | 'id:neq' => 10                  |
 | **\>**,<wbr/> gt              | Greater than           | 'age:>' => 35                   |
-| **\>=**,<wbr/> gte            | Greater than or equal  | 'age:gte' => 35                 | ->where('age', '>=', 35)                      
-| **\<**,<wbr/> lt              | Less than              | 'age:<' => 12                   | ->where('age', '<', 12)                       
-| **\<=**,<wbr/> lte            | Less than or equal     | 'age:lte' => 12                 | ->where('age', '<=', 12)                      
-| **in**                        | In                     | 'id:in' => [10,11,12]           | ->whereIn('id',[10,11,12])                    
-| **!in**,<wbr/> notin          | Not in                 | 'id:!in' => [2,4]               | ->whereNotIn('id',[2,4])                      
-| **like**                      | Like                   | 'title:like' => '%Linux%'       | ->where('title', 'LIKE', '%linux%')           
-| **!like**,<wbr/> notlike      | Not like               | 'title:notlike' => '%linux%'    | ->where('title', 'NOT LIKE', '%linux%')       
-| **or**                        | Or                     | 'or:published' => 1             | ->orWhere('published', 1)                     
-|                               | Or                     | 'or:id:in' => [10,11]           | ->orWhereIn('id', [10,11]])                   
+| **\>=**,<wbr/> gte            | Greater than or equal  | 'age:gte' => 35                 | ->where('age', '>=', 35)                
+| **\<**,<wbr/> lt              | Less than              | 'age:<' => 12                   | ->where('age', '<', 12)                 
+| **\<=**,<wbr/> lte            | Less than or equal     | 'age:lte' => 12                 | ->where('age', '<=', 12)                
+| **in**                        | In                     | 'id:in' => [10,11,12]           | ->whereIn('id',[10,11,12])              
+| **!in**,<wbr/> notin          | Not in                 | 'id:!in' => [2,4]               | ->whereNotIn('id',[2,4])                
+| **like**                      | Like                   | 'title:like' => '%Linux%'       | ->where('title', 'LIKE', '%linux%')     
+| **!like**,<wbr/> notlike      | Not like               | 'title:notlike' => '%linux%'    | ->where('title', 'NOT LIKE', '%linux%') 
+| **or**                        | Or                     | 'or:published' => 1             | ->orWhere('published', 1)               
+|                               | Or                     | 'or:id:in' => [10,11]           | ->orWhereIn('id', [10,11]])             
 
 ```php
 'conditions' => [    
