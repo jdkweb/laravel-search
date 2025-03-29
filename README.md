@@ -218,6 +218,12 @@ Change search result items per page
         'pagination' => 30,                 // 30 items per page, default is 15
 ```
 
+```php
+'settings' => [
+    'default' => [
+        'pagination' => false,                 // All results on one page
+```
+
 ### Configuration directly embed settings in script
 Without using a config file 
 ```php
@@ -370,6 +376,7 @@ Config-file
 'settings' => [
     '[CONFIG-NAME]' => [
         'searchQuery' => [PRESET SEARCH],
+        'pagination' => [ITEMS_PER_PAGE_OR_FALSE_FOR_ALL]
         'parameters' => [
             'search_query' => '[NAME]',  
             'actual_page' => '[NAME]',     
@@ -404,7 +411,8 @@ $newsearchResult = $search->get();
 Directly embed settings into the script
 ```php
 $search = app('search')
-    ->setSearchQuery([PRESET SEARCH]);                
+    ->setSearchQuery([PRESET SEARCH]);   
+    ->setPagination([ITEMS_PER_PAGE_OR_FALSE_FOR_ALL])             
     ->setParams([
         'search_query' => '[NAME]',  
         'actual_page' => '[NAME]',     
@@ -538,6 +546,7 @@ return [
     'settings' => [
         'global' => [                                       // Global search on search page on the website
             'parameters' => $parameters,
+            'pagination' => 20
             'App\Models\Articles' => $articles,         
             'App\Models\Pages' => $pages
             'App\Models\Books\Book' => $books,
@@ -550,6 +559,7 @@ return [
         ],
         'articles' => [                                     // searching in articles
             'parameters' => $parameters,
+            'pagination' => 5
             'App\Models\Articles' => $articles,
         ]
     ]
