@@ -48,6 +48,12 @@ class Search
         'actual_filter' => 'f',
     ];
 
+    /**
+     * Items perPage or no paging
+     * @var int|null
+     */
+    protected ?int $pagination = 15;
+
     protected string $hash;
 
     //------------------------------------------------------------------------------------------------------------------
@@ -346,8 +352,10 @@ class Search
      * @param $options
      * @return LengthAwarePaginator
      */
-    protected function paginate($items, $perPage = 10, $page = null, $options = []): LengthAwarePaginator
+    protected function paginate($items, $perPage = null, $page = null, $options = []): LengthAwarePaginator
     {
+        // @TODO show all no pagination, working for billion items
+        $perPage = $perPage ?? $this->pagination ?? 1000000000;
         $page = $page ?? request()->get($this->parameters['actual_page']) ?? (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
         $options = [
@@ -371,6 +379,7 @@ class Search
             $options
         );
         $paginator->setPageName($this->parameters['actual_page']);
+
         return $paginator;
     }
 
@@ -397,10 +406,18 @@ class Search
     {
         $arr = config('laravel-search.settings.'.$setting);
 
+        if(is_null($arr)) return $this;
+
         foreach ($arr as $model => $set) {
             // modify uri variable keys
             if ($model == 'parameters') {
                 $this->setParams($set);
+                continue;
+            }
+
+            // pagination
+            if ($model == 'pagination') {
+                $this->setPagination($set);
                 continue;
             }
 
@@ -495,6 +512,17 @@ class Search
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * items per page
+     * @param  int|null  $pages
+     * @return $this
+     */
+    public function setPagination(?int $pages = 10): static
+    {
+        $this->pagination = ($pages == false) ? null : (is_numeric($pages) ? $pages : 10);
         return $this;
     }
 }

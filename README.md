@@ -19,6 +19,7 @@ Laravel-Search is a search-engine using the models. Search easily, flexible add 
     - [Filters, search groups](#filters-search-groups)
     - [Rename query strings parameters](#rename-query-strings-parameters)
     - [Preset search words](#preset-search-words)
+    - [Search Result items per page](#search-result-items-per-page)
   - [Configuration directly embed settings in script](#configuration-directly-embed-settings-in-script) 
 - [Operators for conditions](#operators-for-conditions)  
 - [Filter specific words from the search](#filter-specific-words-from-the-search)  
@@ -58,6 +59,7 @@ Base configuration for the search engine in the config-file
 'settings' => [    
     '[CONFIG-NAME]' => [                      // Engine configuration name
         'searchQuery' => '[PRESET SEARCH]',   // Optional: preset search words, results directly shown
+        'pagination' => 20,                   // Optional: search items per page , default = 15  
         'parameters' => [                     // Optional: specific names query strings parameters           
             'search_query' => '[NAME]',       // search terms, default: q
             'actual_page' => '[NAME]',        // result page, default: p
@@ -196,7 +198,7 @@ search?search=some search words&page=1&filter=articles
             ...  
 ```
 
-### Preset search words
+#### Preset search words
 It is possible to fire a searchQuery by default.
 
 In config file
@@ -207,12 +209,22 @@ In config file
         ...
 ```
 
+#### Search Result items per page
+Change search result items per page
+
+```php
+'settings' => [
+    'default' => [
+        'pagination' => 30,                 // 30 items per page, default is 15
+```
+
 ### Configuration directly embed settings in script
 Without using a config file 
 ```php
 $search = app('search')
-    ->setSearchQuery('Adobe');                  // Set default search 
-    ->setGetVars([
+    ->setSearchQuery('Adobe');                  // Optional: preset search words, results directly shown 
+    ->setPagination(10)                         // Optional: search items per page , default = 15
+    ->setGetVars([                              // Optional: specific names query strings parameters
         'search_query' => 'search',             // search terms
         'actual_page' => 'page',                // result page
         'actual_filter' => 'filter'             // result filter
