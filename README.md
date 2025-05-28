@@ -93,8 +93,7 @@ Base configuration for the search engine in the config-file
         'resultFields' => [
             [VARIABLENAME] => [COLUMNNAME | METHOD | CLOSURE],
             ...
-        ]
-]    
+        ]  
     ]
 ]
 ```
