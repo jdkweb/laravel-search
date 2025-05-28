@@ -25,22 +25,7 @@ return [
                 'actual_page' => 'page',
                 'actual_filter' => 'f'
             ],
-            'App\Models\Articles' => [
-                'searchFields' => [
-                    'title' => 2.5,
-                    'lead' => 2,
-                    'content' => 1,
-                ],
-                'conditions' => [
-                    'active' => 1
-                ],
-                'resultFields' => [
-                    'title' => 'title',
-                    'text' => 'lead',
-                    'url' => fn() => "/".config('ia.uri.artikelen')."/".$this->slug
-                ]
-            ],
-            'App\Models\Advies' => [
+            'App\Models\About' => [
                 'searchFields' => [
                     'title' => 2.5,
                     'intro_text' => 2,
@@ -52,22 +37,7 @@ return [
                 'resultFields' => [
                     'title' => 'title',
                     'text' => 'intro_text',
-                    'url' => fn() => "/".config('ia.uri.advies')."/".$this->slug
-                ]
-            ],
-            'App\Models\Overons' => [
-                'searchFields' => [
-                    'title' => 2.5,
-                    'intro_text' => 2,
-                    'content' => 1,
-                ],
-                'conditions' => [
-                    'active' => 1
-                ],
-                'resultFields' => [
-                    'title' => 'title',
-                    'text' => 'intro_text',
-                    'url' => fn() => "/".config('ia.uri.over')."/".$this->slug
+                    'url' => fn() => "/about/".$this->slug
                 ]
             ],
             'App\Models\Pages' => [
@@ -83,48 +53,6 @@ return [
                     'title' => 'title',
                     'text' => 'intro_text',
                     'url' => fn() => "/".$this->slug
-                ]
-            ],
-            'App\Models\Books\Book' => [
-                'searchFields' => [
-                    'name' => 2.5,
-                    'shortname' => 1,
-                    'body' => 2,
-                    'colofon' => 1,
-                    'intro' => 2
-                ],
-                'conditions' => [
-                    'active' => 1,
-                ],
-                'resultFields' => [
-                    'title' => 'name',
-                    'text' => 'intro',
-                    'url' => fn () => "/" . config('ia.uri.ebooks') ."/" . getSlug($this->shortname)
-                ]
-            ],
-            'App\Models\Books\Chapter' => [
-                'searchFields' => [
-                    'name' => 2.5,
-                    'intro' => 2.5,
-                    'body' => 2,
-                ],
-                'conditions' => [
-                    'active' => 1,
-//                    'book_id:!in' => function () {
-//                        return App\Models\Books\Book::query()
-//                            ->where('active', 1)
-//                            ->select('id');
-//                    }
-                ],
-                'resultFields' => [
-                    'title' => 'name',
-                    'bookname' => function () {
-                        return App\Models\Books\Book::query()
-                            ->where('id', $this->book_id)
-                            ->select('name')->first()->name;
-                    },
-                    'text' => 'intro',
-                    'url' => 'getSlug'
                 ]
             ],
         ],
@@ -144,7 +72,6 @@ return [
                 'conditions' => [
                     //'title:like' => "VN%",
                     'active' => 1,
-
                 ],
                 'resultFields' => [
                     'title' => 'title',
