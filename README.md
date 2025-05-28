@@ -362,11 +362,23 @@ Laravel-search is working with GET variables ([query strings parameters can be r
 ```php
 search?q=some+search+words 
 ```
+
+By default, if defined, the search engine configuration called 'default' is used.
+
+```php
+$search = app('search');  // search with 'default' settings
+// search result
+$result = $search->get();
+```
+
+You can use a custom configuration by calling the `settings()` methode
+
 ```php
 $search = app('search')->settings('global');    // search with 'global' settings
 // search result
 $result = $search->get();
 ```
+
 **Result:**
 ```php
 #items: array:4 [▼
