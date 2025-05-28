@@ -269,7 +269,9 @@ class Search
                     similar_text($value, $this->searchQuery->getTerm(), $percent);
                     $relevance += $percent;
 
-                    $extra_relevance = 100 / count($this->terms);
+                    $extra_relevance = 1;
+
+                    if (count($this->terms) > 0)  $extra_relevance = 100 / count($this->terms);
 
                     // each word
                     foreach ($this->terms as $term) {
