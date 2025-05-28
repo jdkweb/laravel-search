@@ -86,7 +86,7 @@ Base configuration for the search engine in the config-file
             [COLUMNAME] => [PRIORITY],
             ...
         ],
-        'conditions' => [
+        'conditions' => [ // Set search conditions (optional) 
             [COLUMNNAME] => [VALUE | METHOD | CLOSURE],
             ...
         ],
@@ -113,7 +113,7 @@ The example below shows the configuration of a search engine named 'global'.
                 'body' => 1,            
                                         // In query: title LIKE '%[search words]%' OR lead LIKE '%[search words]%' ...
             ],
-            'conditions' => [
+            'conditions' => [          
                 'active' => 1,          // query: active = 1 AND published = 1  
                 'published' => 1,       // 
             ],

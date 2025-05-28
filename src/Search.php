@@ -435,8 +435,9 @@ class Search
 
             // handle search settings
             $this->setModel($model, $set['searchFields']);
-            $this->setConditions($model, $set['conditions']);
             $this->showResults($model, $set['resultFields']);
+
+            if (isset($set['conditions'])) $this->setConditions($model, $set['conditions']);
         }
 
         return $this;
