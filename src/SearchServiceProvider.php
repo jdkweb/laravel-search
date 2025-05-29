@@ -33,9 +33,18 @@ class SearchServiceProvider extends ServiceProvider
             dirname(__DIR__).'/config/laravel-search.php' => config_path('laravel-search.php'),
         ], 'config');
 
+        // system core config
+        $this->publishes([
+            dirname(__DIR__).'/config/laravel-search-system.php' => config_path('laravel-search-system.php'),
+        ], 'config');
+
         // When not published Load config
-        if (is_null(config('laravel-search.settings'))) {
+        if (is_null(config('laravel-search'))) {
             $this->mergeConfigFrom(dirname(__DIR__).'/config/laravel-search.php', 'laravel-search');
         }
+        if (is_null(config('laravel-search-system'))) {
+            $this->mergeConfigFrom(dirname(__DIR__).'/config/laravel-search-system.php', 'laravel-search-system');
+        }
+
     }
 }

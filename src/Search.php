@@ -58,6 +58,12 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
+    public function __construct() {
+        $this->settings(config('laravel-search-system.defaultSearchEngineSettings'));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
     /**
      * Handle search request
      *
@@ -263,7 +269,9 @@ class Search
                     similar_text($value, $this->searchQuery->getTerm(), $percent);
                     $relevance += $percent;
 
-                    $extra_relevance = 100 / count($this->terms);
+                    $extra_relevance = 1;
+
+                    if (count($this->terms) > 0)  $extra_relevance = 100 / count($this->terms);
 
                     // each word
                     foreach ($this->terms as $term) {
@@ -429,8 +437,9 @@ class Search
 
             // handle search settings
             $this->setModel($model, $set['searchFields']);
-            $this->setConditions($model, $set['conditions']);
             $this->showResults($model, $set['resultFields']);
+
+            if (isset($set['conditions'])) $this->setConditions($model, $set['conditions']);
         }
 
         return $this;

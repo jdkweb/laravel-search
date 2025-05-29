@@ -15,17 +15,20 @@ Laravel-Search is a search-engine using the models. Search easily, flexible add 
 - [Installation](#installation)
 - [Usage](#usage)
   - [Configuration with config-file](#configuration-with-config-file)
-    - [Using the search engine](#using-the-search-engine) 
-    - [Filters, search groups](#filters-search-groups)
+    - [Search engine configuration](#search-engine-configuration)
+      - [Searchable model configuration](#searchable-model-configuration)
+      - [Example](#example)
     - [Rename query strings parameters](#rename-query-strings-parameters)
     - [Preset search words](#preset-search-words)
     - [Search Result items per page](#search-result-items-per-page)
-  - [Configuration directly embed settings in script](#configuration-directly-embed-settings-in-script) 
+    - [Example Config](#example-config)
+  - [Configuration directly embed settings in script](#configuration-directly-embed-settings-in-script)
+  - [Using the search engine](#using-the-search-engine) 
+    - [Filters (search groups)](#filters-search-groups)
 - [Operators for conditions](#operators-for-conditions)  
 - [Filter specific words from the search](#filter-specific-words-from-the-search)  
 - [Methods and Closures](#methods-and-closures)
 - [Compare configuration settings](#compare-configuration-setting)
-- [Example Config](#example-config)
 
 
 ## Installation
@@ -47,12 +50,16 @@ In the config is needed for:
 - Change cache settings
 
 ## Usage
-### Configuration with config file
-Publish the config first.
 
-- Define the models used in search engine 
+### Configuration with config file
+*Publish the config first.*
+
+- Define the models that need to be used in search engine 
 - set default search conditions 
 - define the output variables.
+
+
+#### Search engine configuration
 
 Base configuration for the search engine in the config-file
 ```php
@@ -71,7 +78,7 @@ Base configuration for the search engine in the config-file
 ]
 ```
 
-Model configuration
+##### Searchable model configuration
 ```php
 [
     '[MODEL\NAMESPACE]' => [
@@ -79,19 +86,22 @@ Model configuration
             [COLUMNAME] => [PRIORITY],
             ...
         ],
-        'conditions' => [
+        'conditions' => [ // Set search conditions (optional) 
             [COLUMNNAME] => [VALUE | METHOD | CLOSURE],
             ...
         ],
         'resultFields' => [
             [VARIABLENAME] => [COLUMNNAME | METHOD | CLOSURE],
             ...
-        ]
-]    
+        ]  
     ]
 ]
 ```
-Example
+
+##### Example
+
+The example below shows the configuration of a search engine named 'global'.
+
 ```php
 'settings' => [    
     'global' => [                       // Settings name 'global'
@@ -103,7 +113,7 @@ Example
                 'body' => 1,            
                                         // In query: title LIKE '%[search words]%' OR lead LIKE '%[search words]%' ...
             ],
-            'conditions' => [
+            'conditions' => [          
                 'active' => 1,          // query: active = 1 AND published = 1  
                 'published' => 1,       // 
             ],
@@ -117,64 +127,10 @@ Example
     ]
 ],
 ```
-The example above is a set named 'global'. This makes it possible to create multiple specific sets that behave different. In addition to a global search engine for the entire website it is posible to make a specific page related search
+In short, one can defining multiple search engines. This makes it possible to create multiple specific search sets that behave different. 
+You can create a global search engine or one for a specific page/model.
 
 [See example of large configuration file with methods an closures](#example-config)
-
-#### Using the search engine
-
-Laravel-search is working with GET variables ([query strings parameters can be renamed](#rename-query-strings-parameters))
-```php
-search?q=some search words 
-```
-```php
-$search = app('search')->settings('global');    // search with 'global' settings
-// search result
-$result = $search->get();
-```
-**Result:**
-```php
-#items: array:4 [▼
-  0 => array:6 [▼
-    "id" => 214
-    "model" => "App\Models\Articles"
-    "relevance" => 4221.0572158193
-    "title" => "Sed non leo ac massa dignissim condimentum"
-    "lead" => "Donec efficitur dictum justo vitae auctor. Curabitur eu diam a nisi eleifend tristique eget non augue. Integer sed metus non nisl fringilla venenatis."
-    "url" => "/articles/sed-non-leo-ac-massa-dignissim",
-    "date" => "11/01/2025"
-  ]
-  1 => array:6 [▼
-    "id" => 78
-    "model" => "App\Models\Articles"
-    "relevance" => 3947.883125879
-    "title" => "Cras non urna vitae risus suscipit varius eu eget lorem"
-    "lead" => "Nullam sed nisl mi. Vivamus interdum ut turpis ac aliquet. Vestibulum vulputate, ex ut iaculis venenatis, nisl neque bibendum ex"
-    "url" => "/articles/cras-non-urna-vitae-risus"
-    "date" => "31/11/2024"
-  ]
-  2 => array:6 [▶]
-  3 => array:6 [▶]
-```
-#### Filters (search groups)
-![use result filters](https://www.jdkweb.nl/git/images/search-filters.webp)
-Use specific model or group of models for searching
-```php
-// available filters
-$filters = ['all','blog','articles','workshops']
-
-// get filter &f=[FILTER] 
-$filter = request()->get('f');
-
-$search = match($filter) {
-    'blog' => app('search')->settings('blog');              
-    'articles' => app('search')->settings('articles');
-    'workshops' => app('search')->settings('workshops');
-    default => app('search')->settings('default');          
-};
-
-$result = $search->get();
-```
 
 #### Rename query strings parameters
 Renaming the GET variables that appear in the URL
@@ -224,8 +180,133 @@ Change search result items per page
         'pagination' => false,                 // All results on one page
 ```
 
+#### Example config
+A setup for three different search engine configurations, each in a other situation with more specific search results
+- Global website search
+- Book / Chapter search
+- Article searching
+```php
+<?php
+
+// Settings URL parameters 
+$parameters = [
+    'search_query' => 'search',
+    'actual_page' => 'page',
+    'actual_filter' => 'filter'
+];
+
+// App\Models\Books for searching
+$books = [
+    'searchFields' => [
+        'name' => 3,
+        'body' => 2,
+        'intro' => 2
+    ],
+    'conditions' => [
+        'active' => 1,
+    ],
+    'resultFields' => [
+        'title' => 'name',
+        'text' => 'intro',
+        'cover' => function() {
+            return App\Models\BookCovers::query()
+                ->where('id', $this->id)
+                ->first()            
+        }
+        'url' => fn() => "/books/".getSlug($this->shortname)
+    ]
+];
+
+// App\Models\Chapters (related to Books) for searching
+$chapter = [
+    'searchFields' => [
+        'name' => 3,
+        'intro' => 3,
+        'body' => 2,
+    ],
+    'conditions' => [
+        'active' => 1,
+        'book_id:in' => function () {
+            return App\Models\Book::query()
+                ->where('active', 1)
+                ->select('id');
+        }
+    ],
+    'resultFields' => [
+        'title' => 'name',
+        'bookname' => function () {
+            return App\Models\Book::query()
+                ->where('id', $this->book_id)
+                ->select('name')->first()->name;
+        },
+        'text' => 'intro',
+        'url' => 'getSlug'
+    ]
+];
+
+// App\Models\Articles for searching
+$articles = [
+    'searchFields' => [
+        'title' => 3,
+        'lead' => 2,
+        'content' => 1,
+    ],
+    'conditions' => [
+        'active' => 1,
+        'published:<' => time()
+    ],
+    'resultFields' => [
+        'title' => 'title',
+        'text' => 'lead',
+        'thumbnail' => fn() => $this->getThumbnail(),
+        'url' => fn() => "/articles/".$this->slug
+    ]
+];
+
+// App\Models\Pages for searching
+$pages = [
+    'searchFields' => [
+        'title' => 3,
+        'introduction' => 3,
+        'content' => 2
+    ],
+    'conditions' => [
+        'active' => 1,
+        'parent_id:!=' => 88
+    ],
+    'resultFields' => [
+        'title' => 'title',
+        'text' => 'introduction',
+        'url' => fn() => "/pages/".getSlug($this->name)
+    ]
+];
+
+return [
+    'settings' => [
+        'global' => [                                       // Global search on search page on the website
+            'parameters' => $parameters,
+            'pagination' => 20
+            'App\Models\Articles' => $articles,         
+            'App\Models\Pages' => $pages
+            'App\Models\Books\Book' => $books,
+            'App\Models\Books\Chapter' => $chapter
+        ],
+        'books' => [                                        // searching in books and chapters
+            'parameters' => $parameters,
+            'App\Models\Books\Book' => $books,
+            'App\Models\Books\Chapter' => $chapter,
+        ],
+        'articles' => [                                     // searching in articles
+            'parameters' => $parameters,
+            'pagination' => 5
+            'App\Models\Articles' => $articles,
+        ]
+    ]
+];
+```
+
 ### Configuration directly embed settings in script
-Without using a config file 
+Without using a config file
 ```php
 $search = app('search')
     ->setSearchQuery('Adobe');                  // Optional: preset search words, results directly shown 
@@ -273,6 +354,78 @@ $search = app('search')
     ]);
 }
 ```
+
+### Using the search engine
+
+Laravel-search is working with GET variables ([query strings parameters can be renamed](#rename-query-strings-parameters))
+```php
+search?q=some+search+words 
+```
+
+By default, if defined, the search engine configuration called 'default' is used.
+
+```php
+$search = app('search');  // search with 'default' settings
+// search result
+$result = $search->get();
+```
+
+You can use a custom configuration by calling the `settings()` methode
+
+```php
+$search = app('search')->settings('global');    // search with 'global' settings
+// search result
+$result = $search->get();
+```
+
+**Result:**
+```php
+#items: array:4 [▼
+  0 => array:6 [▼
+    "id" => 214
+    "model" => "App\Models\Articles"
+    "relevance" => 4221.0572158193
+    "title" => "Sed non leo ac massa dignissim condimentum"
+    "lead" => "Donec efficitur dictum justo vitae auctor. Curabitur eu diam a nisi eleifend tristique eget non augue. Integer sed metus non nisl fringilla venenatis."
+    "url" => "/articles/sed-non-leo-ac-massa-dignissim",
+    "date" => "11/01/2025"
+  ]
+  1 => array:6 [▼
+    "id" => 78
+    "model" => "App\Models\Articles"
+    "relevance" => 3947.883125879
+    "title" => "Cras non urna vitae risus suscipit varius eu eget lorem"
+    "lead" => "Nullam sed nisl mi. Vivamus interdum ut turpis ac aliquet. Vestibulum vulputate, ex ut iaculis venenatis, nisl neque bibendum ex"
+    "url" => "/articles/cras-non-urna-vitae-risus"
+    "date" => "31/11/2024"
+  ]
+  2 => array:6 [▶]
+  3 => array:6 [▶]
+```
+
+#### Filters (search groups)
+![use result filters](https://www.jdkweb.nl/git/images/search-filters.webp)
+
+The [searchable models](#searchable-model-configuration) we defined earlier can be used to create filters (or search groups). As shown in the example above.
+
+Use specific model or group of models for searching
+```php
+// available filters
+$filters = ['all','blog','articles','workshops']
+
+// get filter &f=[FILTER] 
+$filter = request()->get('f');
+
+$search = match($filter) {
+    'blog' => app('search')->settings('blog');              
+    'articles' => app('search')->settings('articles');
+    'workshops' => app('search')->settings('workshops');
+    default => app('search')->settings('default');          
+};
+
+$result = $search->get();
+```
+
 ### Operators for conditions
 In the search conditions is it possible to use operators
 
@@ -304,10 +457,6 @@ In the search conditions is it possible to use operators
     'or:preview' => 1
 ],
 ```
-
-
-
-  
 
 ### Filter specific words from the search
 Language related list of words that are filtered from the search
@@ -440,130 +589,3 @@ $searchResult = $search->get();
 $search->setSearchQuery([NEW SEARCH WORDS]);
 $newsearchResult = $search->get();
 ```
-
-### Example config
-A setup for three different search engine configurations, each in a other situation with more specific search results
-- Global website search
-- Book / Chapter search
-- Article searching
-```php
-<?php
-
-// Settings URL parameters 
-$parameters = [
-    'search_query' => 'search',
-    'actual_page' => 'page',
-    'actual_filter' => 'filter'
-];
-
-// App\Models\Books for searching
-$books = [
-    'searchFields' => [
-        'name' => 3,
-        'body' => 2,
-        'intro' => 2
-    ],
-    'conditions' => [
-        'active' => 1,
-    ],
-    'resultFields' => [
-        'title' => 'name',
-        'text' => 'intro',
-        'cover' => function() {
-            return App\Models\BookCovers::query()
-                ->where('id', $this->id)
-                ->first()            
-        }
-        'url' => fn() => "/books/".getSlug($this->shortname)
-    ]
-];
-
-// App\Models\Chapters (related to Books) for searching
-$chapter = [
-    'searchFields' => [
-        'name' => 3,
-        'intro' => 3,
-        'body' => 2,
-    ],
-    'conditions' => [
-        'active' => 1,
-        'book_id:in' => function () {
-            return App\Models\Book::query()
-                ->where('active', 1)
-                ->select('id');
-        }
-    ],
-    'resultFields' => [
-        'title' => 'name',
-        'bookname' => function () {
-            return App\Models\Book::query()
-                ->where('id', $this->book_id)
-                ->select('name')->first()->name;
-        },
-        'text' => 'intro',
-        'url' => 'getSlug'
-    ]
-];
-
-// App\Models\Articles for searching
-$articles = [
-    'searchFields' => [
-        'title' => 3,
-        'lead' => 2,
-        'content' => 1,
-    ],
-    'conditions' => [
-        'active' => 1,
-        'published:<' => time()
-    ],
-    'resultFields' => [
-        'title' => 'title',
-        'text' => 'lead',
-        'thumbnail' => fn() => $this->getThumbnail(),
-        'url' => fn() => "/articles/".$this->slug
-    ]
-];
-
-// App\Models\Pages for searching
-$pages = [
-    'searchFields' => [
-        'title' => 3,
-        'introduction' => 3,
-        'content' => 2
-    ],
-    'conditions' => [
-        'active' => 1,
-        'parent_id:!=' => 88
-    ],
-    'resultFields' => [
-        'title' => 'title',
-        'text' => 'introduction',
-        'url' => fn() => "/pages/".getSlug($this->name)
-    ]
-];
-
-return [
-    'settings' => [
-        'global' => [                                       // Global search on search page on the website
-            'parameters' => $parameters,
-            'pagination' => 20
-            'App\Models\Articles' => $articles,         
-            'App\Models\Pages' => $pages
-            'App\Models\Books\Book' => $books,
-            'App\Models\Books\Chapter' => $chapter
-        ],
-        'books' => [                                        // searching in books and chapters
-            'parameters' => $parameters,
-            'App\Models\Books\Book' => $books,
-            'App\Models\Books\Chapter' => $chapter,
-        ],
-        'articles' => [                                     // searching in articles
-            'parameters' => $parameters,
-            'pagination' => 5
-            'App\Models\Articles' => $articles,
-        ]
-    ]
-];
-```
-
-
