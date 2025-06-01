@@ -180,29 +180,22 @@ class Search
 
                         if ($postfix != '') {
                             $whereMethod .= $postfix;
-                            unset($set['operator']);
                         }
 
-                        // unset OR condition
-                        unset($set['condition']);
-
                         // Closure
-                        if (is_a(end($set), 'Closure')) {
+                        if (is_a($set['value'], 'Closure')) {
                             // Run closure
                             try {
-                                $res = call_user_func(end($set));
-                                // remove Closure from array
-                                array_pop($set);
-                                $query->{$whereMethod}(...[...$set, $res]);
+                                $res = call_user_func($set['value']);
                             } catch (\Throwable $e) {
-                                // error in closure, not included in query
+                                // error in closure, closure result is not included in query
+                            } finally {
+                                if(isset($res)) {
+                                    $query->{$whereMethod}(...[$set['field'], $res->get()]);
+                                }
                             }
                         } else {
-                            try {
-                                $query->{$whereMethod}(...$set);
-                            } catch (\Throwable $e) {
-                                // error in closure, not included in query
-                            }
+                            $query->{$whereMethod}($set['field'], $set['operator'], $set['value']);
                         }
                     }
                 });
@@ -234,6 +227,21 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
+//    protected function closureHandler($results)
+//    {
+//        // Closure
+//        if (is_a(end($set), 'Closure')) {
+//            // Run closure
+//            try {
+//                $res = call_user_func(end($set));
+//                // remove Closure from array
+//                array_pop($set);
+//                $query->{$whereMethod}(...[...$set, $res]);
+//            } catch (\Throwable $e) {
+//                // error in closure, not included in query
+//            }
+//        } else {
+//    }
 
     //------------------------------------------------------------------------------------------------------------------
 
