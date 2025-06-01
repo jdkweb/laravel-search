@@ -58,8 +58,9 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
-    public function __construct() {
-        $this->settings(config('laravel-search-system.defaultSearchEngineSettings'));
+    public function __construct(?string $settings = null)
+    {
+        return $this->settings($settings);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ class Search
     /**
      * Handle search request
      *
-     * @return void
+     * @return LengthAwarePaginator|null
      */
     public function get(): ?LengthAwarePaginator
     {
@@ -86,9 +87,6 @@ class Search
 
         // relevance
         $results = $this->setSearchRelevance($results);
-
-        // order on relevance
-        $results = $this->orderByRelevance($results);
 
         // paging
         return $this->paginate($results);
@@ -118,14 +116,14 @@ class Search
 
     /**
      * Search using available models
-     * @return array|null
+     * @return Collection|null
      */
-    protected function runSearch(): ?array
+    protected function runSearch(): ?Collection
     {
         // Key on path, search query and actual filter
-        $key = md5(request()->path() .
-            $this->searchQuery->getSearchQuery() .
-            request()->get($this->parameters['actual_filter']) ?? '');
+        $key = md5(request()->path().
+        $this->searchQuery->getSearchQuery().
+        request()->get($this->parameters['actual_filter']) ?? '');
 
         if (config('laravel-search.use_caching')) {
             // Cache for paging result without query
@@ -136,48 +134,45 @@ class Search
             $results = $this->runSearchQuery();
         }
 
-        // Add models
-        foreach ($this->models as $model => $settings) {
-            $results[class_basename($model)]['settings'] = $settings;
-        }
-
         return $results;
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
-    private function runSearchQuery(): array
+    private function runSearchQuery(): Collection
     {
-        $results = [];
+        $results = null;
         DB::transaction(function () use (&$results) {
 
             // Walk thru models to search
             foreach ($this->models as $model => $settings) {
                 // Start query
-                $results[class_basename($model)]['builder'] = $model::query();
+                $result = null;
+                $result = $model::query();
 
                 // Get tablename
                 $tablename = app($model)->getTable();
 
                 // Search conditions
-                $results[class_basename($model)]['builder']->whereNested(function ($query) use (
+                $result->whereNested(function ($query) use (
                     $settings,
                     $tablename
                 ) {
                     foreach ($settings->searchConditions as $set) {
+
                         // Add table name
-                        $set[0] = $tablename.'.'.$set[0];
+                        $set['field'] = $tablename.'.'.$set['field'];
 
                         // Create Where Clause
                         $whereMethod = 'where';
 
                         // OR operator
-                        if ($set[3] === 'OR') {
+                        if ($set['condition'] === 'OR') {
                             $whereMethod = 'or'.ucfirst($whereMethod);
                         }
 
                         // IN / LIKE operators
-                        $postfix = match ($set[1]) {
+                        $postfix = match ($set['operator']) {
                             'IN' => "In",
                             'NOT IN' => "NotIn",
                             default => "",
@@ -185,11 +180,11 @@ class Search
 
                         if ($postfix != '') {
                             $whereMethod .= $postfix;
-                            unset($set[1]);
+                            unset($set['operator']);
                         }
 
-                        // unset or operator
-                        unset($set[3]);
+                        // unset OR condition
+                        unset($set['condition']);
 
                         // Closure
                         if (is_a(end($set), 'Closure')) {
@@ -203,13 +198,17 @@ class Search
                                 // error in closure, not included in query
                             }
                         } else {
-                            $query->{$whereMethod}(...$set);
+                            try {
+                                $query->{$whereMethod}(...$set);
+                            } catch (\Throwable $e) {
+                                // error in closure, not included in query
+                            }
                         }
                     }
                 });
 
                 // Search on searchquery
-                $results[class_basename($model)]['builder']->whereNested(function ($query) use (
+                $result->whereNested(function ($query) use (
                     $settings,
                     $tablename
                 ) {
@@ -220,8 +219,13 @@ class Search
                     }
                 });
 
-                // Result in collection
-                $results[class_basename($model)]['builder'] = $results[class_basename($model)]['builder']->get();
+                // Merge results from models
+                if (is_null($results)) {
+                    $results = $result->get();
+                } else {
+                    $results = $results->merge($result->get());
+
+                }
             }
         });
 
@@ -230,122 +234,94 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Search result add relevance
-     * @param  array  $results
-     * @return array
-     */
-    protected function setSearchRelevance(array $results): array
-    {
-        $search_result = [];
-
-        // result => builder & settings
-        foreach ($results as $result) {
-            $priority = $result['settings']->searchFieldsPriority;
-
-            foreach ($result['builder'] as $row) {
-                $relevance = 0;
-
-                // Walk thru each row where search words are found
-                foreach ($row->toArray() as $key => $value) {
-                    $value = trim(strtolower($value));
-                    // skip id's etc.
-                    if (is_numeric($value)) {
-                        continue;
-                    }
-
-                    // skip if not in searchFields array
-                    if (!in_array($key, $result['settings']->searchFields)) {
-                        continue;
-                    }
-
-                    // if json
-                    if (is_array($value)) {
-                        $value = implode(',', $value);
-                    }
-
-                    // Calculate the similarity between two strings
-                    $percent = 0;
-                    similar_text($value, $this->searchQuery->getTerm(), $percent);
-                    $relevance += $percent;
-
-                    $extra_relevance = 1;
-
-                    if (count($this->terms) > 0)  $extra_relevance = 100 / count($this->terms);
-
-                    // each word
-                    foreach ($this->terms as $term) {
-                        if (Str::contains($value, $term)) {
-                            $relevance += $extra_relevance * $priority[$key];
-                        }
-                    }
-
-                    // all words
-                    if (Str::containsAll($value, $this->terms)) {
-                        $relevance += $extra_relevance;
-                    }
-                }
-
-                // result for the specific row
-                $r = [
-                    'id' => $row['id'],
-                    'model' => get_class($row),
-                    'relevance' => $relevance,
-                ];
-
-                // fill result fields for result page
-                foreach ($result['settings']->showResultFields as $key => $field) {
-                    if (is_a($field, 'Closure')) {
-                        $boundClosure = \Closure::bind($field, $row);
-                        $r[$key] = '';
-                        try {
-                            $r[$key] = $boundClosure();
-                        } catch (\Throwable $e) {
-                            // error in closure
-                            $r[$key] = '';
-                        }
-                    } elseif (in_array($field, get_class_methods($row))) {
-                        try {
-                            $r[$key] = $row->{$field}();
-                        } catch (\Throwable $e) {
-                            // error in closure
-                            $r[$key] = '';
-                        }
-                    } else {
-                        isset($row->{$field}) ? $r[$key] = $row->{$field} : $r[$key] = '';
-                    }
-                }
-
-                $search_result[] = $r;
-            }
-        }
-
-        // Sorteren op relevance
-        $keys = array_column($search_result, 'relevance');
-        array_multisort(
-          $keys,
-            SORT_DESC,
-            $search_result
-        );
-
-        return $search_result;
-    }
 
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Order by relevance
-     * @param  array  $results
-     * @return array
+     * Search result add relevance
+     * @param  Collection  $results
+     * @return Collection
      */
-    protected function orderByRelevance(array $results): array
+    protected function setSearchRelevance(Collection $results): Collection
     {
-        $keys = array_column($results, 'relevance');
-        array_multisort(
-            $keys,
-            SORT_DESC,
-            $results
-        );
+        $search_result = collect([]);
+
+        $results->each(function ($row) {
+            $settings = $this->models[get_class($row)];
+            $priority = $settings->searchFieldsPriority;
+            $row->setAttribute('relevance', 0);
+            $row->setAttribute('model', get_class($row));
+            foreach ($row->getAttributes() as $key => $value) {
+                // skip id's etc.
+                if (is_numeric($value)) {
+                    continue;
+                }
+
+                // skip if not in searchFields array
+                if (!in_array($key, $settings->searchFields)) {
+                    continue;
+                }
+
+                // if json
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
+
+                $value = trim(strtolower($value));
+
+                // Calculate the similarity between two strings
+                $percent = 0;
+                similar_text($value, $this->searchQuery->getTerm(), $percent);
+                $row->relevance += $percent;
+
+                $extra_relevance = 1;
+
+                if (count($this->terms) > 0) {
+                    $extra_relevance = 100 / count($this->terms);
+                }
+
+                // each word
+                foreach ($this->terms as $term) {
+                    if (Str::contains($value, $term)) {
+                        $row->relevance += $extra_relevance * $priority[$key];
+                    }
+                }
+
+                // all words
+                if (Str::containsAll($value, $this->terms)) {
+                    $row->relevance += $extra_relevance;
+                }
+            }
+
+            // fill result fields for result page
+            foreach ($settings->showResultFields as $key => $field) {
+
+                if (is_a($field, 'Closure')) {
+                    $boundClosure = \Closure::bind($field, $row);
+                    $row->{$key} = $row;
+                    try {
+                        $row->{$key} = $boundClosure();
+                    } catch (\Throwable $e) {
+                        // error in closure
+                        $row->{$key} = '';
+                    }
+                } elseif (in_array($field, get_class_methods($row))) {
+                    try {
+                        $row->{$key} = $row->{$field}();
+                    } catch (\Throwable $e) {
+                        // error in closure
+                        $row->{$key} = '';
+                    }
+                } else {
+                    isset($row->{$field}) ? $row->{$key} = $row->{$field} : $row->{$key} = '';
+                }
+            }
+        });
+
+        // Collection sort on relevance and filter on specific search sets ($this->models)
+        $results = $results->sortByDesc('relevance')->filter(function ($item) {
+            return in_array(get_class($item), array_keys($this->models));
+        });
 
         return $results;
     }
@@ -410,11 +386,13 @@ class Search
      * @param  string  $setting
      * @return $this
      */
-    public function settings(string $setting): static
+    public function settings(string $setting = ''): static
     {
         $arr = config('laravel-search.settings.'.$setting);
 
-        if(is_null($arr)) return $this;
+        if (is_null($arr)) {
+            return $this;
+        }
 
         foreach ($arr as $model => $set) {
             // modify uri variable keys
@@ -439,7 +417,9 @@ class Search
             $this->setModel($model, $set['searchFields']);
             $this->showResults($model, $set['resultFields']);
 
-            if (isset($set['conditions'])) $this->setConditions($model, $set['conditions']);
+            if (isset($set['conditions'])) {
+                $this->setConditions($model, $set['conditions']);
+            }
         }
 
         return $this;

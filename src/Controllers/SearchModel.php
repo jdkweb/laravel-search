@@ -145,6 +145,6 @@ class SearchModel
         // Get operator
         $operator = key($operator);
 
-        return [$key, $operator, $value, $or];
+        return ['field' => $key, 'operator' => $operator, 'value' => $value, 'condition' => $or];
     }
 }

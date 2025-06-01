@@ -104,7 +104,7 @@ The example below shows the configuration of a search engine named 'global'.
 
 ```php
 'settings' => [    
-    'global' => [                       // Settings name 'global'
+    'default' => [                      // Settings name 'default'
         'searchQuery' => 'linux',       // Preset search 'linux'
         'App\Models\Articles' => [      // Model to search: 'Articles'
             'searchFields' => [         
@@ -144,7 +144,7 @@ search?search=some search words&page=1&filter=articles
 
 ```php
 'settings' => [
-    'global' => [                               // Config name 'global'
+    'default' => [                              // Config name 'default'
             'variables' => [                    
                 'search_query' => 'search',     // search terms
                 'actual_page' => 'page',        // result page
@@ -283,7 +283,7 @@ $pages = [
 
 return [
     'settings' => [
-        'global' => [                                       // Global search on search page on the website
+        'default' => [                                      // Default search on search page on the website
             'parameters' => $parameters,
             'pagination' => 20
             'App\Models\Articles' => $articles,         
@@ -308,7 +308,7 @@ return [
 ### Configuration directly embed settings in script
 Without using a config file
 ```php
-$search = app('search')
+$search = app('search')                         // With default settings
     ->setSearchQuery('Adobe');                  // Optional: preset search words, results directly shown 
     ->setPagination(10)                         // Optional: search items per page , default = 15
     ->setGetVars([                              // Optional: specific names query strings parameters
@@ -366,6 +366,11 @@ By default, if defined, the search engine configuration called 'default' is used
 
 ```php
 $search = app('search');  // search with 'default' settings
+
+OR
+
+$search = app('search', ['default']);  // search with 'default' settings
+
 // search result
 $result = $search->get();
 ```
@@ -373,7 +378,7 @@ $result = $search->get();
 You can use a custom configuration by calling the `settings()` methode
 
 ```php
-$search = app('search')->settings('global');    // search with 'global' settings
+$search = app('search', ['global']);     // search with 'global' settings
 // search result
 $result = $search->get();
 ```
@@ -549,7 +554,7 @@ Config-file
 ]
 ```
 ```php
-$search = app('search')->settings('[CONFIG-NAME]');
+$search = app('search', '[CONFIG-NAME]');
 $searchResult = $search->get();
 // Handle next search via GET-variable (searchQuery is overwritten)
 

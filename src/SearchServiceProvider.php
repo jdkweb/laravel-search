@@ -12,10 +12,15 @@ class SearchServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    final public function register():void
+    final public function register(): void
     {
-        $this->app->singleton(Search::class, function ($app) {
-            return new Search();
+        $this->app->singleton(Search::class, function ($app, $params) {
+            $settings = (!empty($params['settings']) ?
+                $params['settings'] : (!empty($params[0]) ?
+                    $params[0] : config('laravel-search-system.defaultSearchEngineSettings')
+                )
+            );
+            return new Search($settings);
         });
 
         // Alias
@@ -26,7 +31,7 @@ class SearchServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    final public function boot():void
+    final public function boot(): void
     {
         // php artisan vendor:publish --provider="Jdkweb\Search\SearchServiceProvider" --tag="config"
         $this->publishes([
