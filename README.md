@@ -293,6 +293,7 @@ return [
         ],
         'books' => [                                        // searching in books and chapters
             'parameters' => $parameters,
+            'pagination' => 10
             'App\Models\Books\Book' => $books,
             'App\Models\Books\Chapter' => $chapter,
         ],
@@ -372,7 +373,7 @@ OR
 $search = app('search', ['default']);  // search with 'default' settings
 
 // search result
-$result = $search->get();
+$result = $search->get();              // returning a collection 
 ```
 
 You can use a custom configuration by calling the `settings()` methode
@@ -380,32 +381,36 @@ You can use a custom configuration by calling the `settings()` methode
 ```php
 $search = app('search', ['global']);     // search with 'global' settings
 // search result
-$result = $search->get();
+$result = $search->get();                // returning a collection
 ```
 
 **Result:**
+
+ordered by relevance 
 ```php
-#items: array:4 [▼
-  0 => array:6 [▼
-    "id" => 214
-    "model" => "App\Models\Articles"
-    "relevance" => 4221.0572158193
-    "title" => "Sed non leo ac massa dignissim condimentum"
-    "lead" => "Donec efficitur dictum justo vitae auctor. Curabitur eu diam a nisi eleifend tristique eget non augue. Integer sed metus non nisl fringilla venenatis."
-    "url" => "/articles/sed-non-leo-ac-massa-dignissim",
-    "date" => "11/01/2025"
-  ]
-  1 => array:6 [▼
-    "id" => 78
-    "model" => "App\Models\Articles"
-    "relevance" => 3947.883125879
-    "title" => "Cras non urna vitae risus suscipit varius eu eget lorem"
-    "lead" => "Nullam sed nisl mi. Vivamus interdum ut turpis ac aliquet. Vestibulum vulputate, ex ut iaculis venenatis, nisl neque bibendum ex"
-    "url" => "/articles/cras-non-urna-vitae-risus"
-    "date" => "31/11/2024"
-  ]
-  2 => array:6 [▶]
-  3 => array:6 [▶]
+  #items: Illuminate\Database\Eloquent\Collection {#3509 ▼
+    #items: array:12 [▼
+      5 => App\Models\Articles {#2958 ▼
+        #connection: "mysql"
+        #table: "articles"
+        ...
+        #attributes: array:19 [▼
+            "id" => 214
+            "model" => "App\Models\Articles"
+            "relevance" => 4221.0572158193
+            "title" => "Sed non leo ac massa dignissim condimentum"
+            "lead" => "Donec efficitur dictum justo vitae auctor. Curabitur eu diam a nisi eleifend tristique eget non augue. Integer sed metus non nisl fringilla venenatis."
+            "url" => "/articles/sed-non-leo-ac-massa-dignissim",
+            "date" => "11/01/2025"        
+            ...
+        
+      2 => App\Models\Articles {#2554 ▶}
+      1 => App\Models\Articles {#3002 ▶}
+      6 => App\Models\Articles {#2638 ▶}
+      ...  
+    ]
+    #escapeWhenCastingToString: false
+  }
 ```
 
 #### Filters (search groups)
