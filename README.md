@@ -1,5 +1,5 @@
 # laravel Search
-[![Packagist Version](https://img.shields.io/packagist/v/jdkweb/rdw-api-filament)](https://github.com/jdkweb/rdw-api-filament)
+[![Packagist Version](https://img.shields.io/packagist/v/jdkweb/search)](https://packagist.org/packages/jdkweb/search)
 [![Static Badge](https://img.shields.io/badge/build-%20%3E%3D%208.1-brightgreen?style=flat&logo=php&logoSize=16&label=PHP)](https://github.com/jdkweb/rdw-api-filament) 
 [![Static Badge](https://img.shields.io/badge/build-%20%3E%3D%2010-slategray?style=flat-square&logo=laravel&logoColor=white&logoSize=16&label=Laravel)](https://github.com/jdkweb/rdw-api-filament)
 
@@ -64,7 +64,7 @@ In the config is needed for:
 Base configuration for the search engine in the config-file
 ```php
 'settings' => [    
-    '[CONFIG-NAME]' => [                      // Engine configuration name
+    '[CONFIG-NAME]' => [                      // Engine configuration name (standard preset: 'default')
         'searchQuery' => '[PRESET SEARCH]',   // Optional: preset search words, results directly shown
         'pagination' => 20,                   // Optional: search items per page , default = 15  
         'parameters' => [                     // Optional: specific names query strings parameters           
@@ -422,10 +422,10 @@ $filters = ['all','blog','articles','workshops']
 $filter = request()->get('f');
 
 $search = match($filter) {
-    'blog' => app('search')->settings('blog');              
-    'articles' => app('search')->settings('articles');
-    'workshops' => app('search')->settings('workshops');
-    default => app('search')->settings('default');          
+    'blog' => app('search', ['blog']);              
+    'articles' => app('search', ['articles']);
+    'workshops' => app('search', ['workshops']);
+    default => app('search');          
 };
 
 $result = $search->get();
@@ -564,7 +564,7 @@ $newsearchResult = $search->get();
 ```
 Directly embed settings into the script
 ```php
-$search = app('search')
+$search = app('search', ['inline'])                     // (No) Config-name can give a confict with actual config settings    
     ->setSearchQuery([PRESET SEARCH]);   
     ->setPagination([ITEMS_PER_PAGE_OR_FALSE_FOR_ALL])             
     ->setParams([
