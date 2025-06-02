@@ -86,8 +86,11 @@ class Search
         // search query
         $results = $this->runSearch();
 
-        // relevance
+        // set and order by relevance
         $results = $this->setSearchRelevance($results);
+
+        // Create result Fields
+        $results = $this->getResultFields($results);
 
         // paging
         return $this->paginate($results);
@@ -234,20 +237,13 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Search result add relevance
-     * @param  Collection  $results
-     * @return Collection
-     */
     protected function setSearchRelevance(Collection $results): Collection
     {
-        $search_result = collect([]);
-
         $results->each(function ($row) {
             $settings = $this->models[get_class($row)];
-            $priority = $settings->searchFieldsPriority;
             $row->setAttribute('relevance', 0);
             $row->setAttribute('model', get_class($row));
+            $priority = $settings->searchFieldsPriority;
 
             foreach ($row->getAttributes() as $key => $value) {
                 // skip id's etc.
@@ -290,6 +286,22 @@ class Search
                     $row->relevance += $extra_relevance;
                 }
             }
+        });
+
+        // Collection sort on relevance and filter on specific search sets ($this->models)
+        $results = $results->sortByDesc('relevance')->filter(function ($item) {
+            return in_array(get_class($item), array_keys($this->models));
+        });
+
+        return $results;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    protected function getResultFields(Collection $results): Collection
+    {
+        $results->each(function ($row) {
+            $settings = $this->models[get_class($row)];
 
             // fill result fields for result page
             foreach ($settings->showResultFields as $key => $field) {
@@ -317,16 +329,10 @@ class Search
             }
         });
 
-        // Collection sort on relevance and filter on specific search sets ($this->models)
-        $results = $results->sortByDesc('relevance')->filter(function ($item) {
-            return in_array(get_class($item), array_keys($this->models));
-        });
-
         return $results;
     }
 
     //------------------------------------------------------------------------------------------------------------------
-
     /**
      * Paging for search result
      * @param $items
