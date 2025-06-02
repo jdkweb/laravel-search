@@ -2,6 +2,7 @@
 
 namespace Jdkweb\Search;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -139,109 +140,97 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
-    private function runSearchQuery(): Collection
+    protected function runSearchQuery(): Collection
     {
-        $results = null;
-        DB::transaction(function () use (&$results) {
+        $collection = null;
+        DB::transaction(function () use (&$collection) {
 
             // Walk thru models to search
             foreach ($this->models as $model => $settings) {
                 // Start query
                 $result = null;
                 $result = $model::query();
-
-                // Get tablename
-                $tablename = app($model)->getTable();
-
-                // Search conditions
-                $result->whereNested(function ($query) use (
-                    $settings,
-                    $tablename
-                ) {
-                    foreach ($settings->searchConditions as $set) {
-
-                        // Add table name
-                        $set['field'] = $tablename.'.'.$set['field'];
-
-                        // Create Where Clause
-                        $whereMethod = 'where';
-
-                        // OR operator
-                        if ($set['condition'] === 'OR') {
-                            $whereMethod = 'or'.ucfirst($whereMethod);
-                        }
-
-                        // IN / LIKE operators
-                        $postfix = match ($set['operator']) {
-                            'IN' => "In",
-                            'NOT IN' => "NotIn",
-                            default => "",
-                        };
-
-                        if ($postfix != '') {
-                            $whereMethod .= $postfix;
-                        }
-
-                        // Closure
-                        if (is_a($set['value'], 'Closure')) {
-                            // Run closure
-                            try {
-                                $res = call_user_func($set['value']);
-                            } catch (\Throwable $e) {
-                                // error in closure, closure result is not included in query
-                            } finally {
-                                if(isset($res)) {
-                                    $query->{$whereMethod}(...[$set['field'], $res->get()]);
-                                }
-                            }
-                        } else {
-                            $query->{$whereMethod}($set['field'], $set['operator'], $set['value']);
-                        }
-                    }
-                });
-
-                // Search on searchquery
-                $result->whereNested(function ($query) use (
-                    $settings,
-                    $tablename
-                ) {
-                    foreach ($settings->searchFields as $name) {
-                        foreach ($this->terms as $term) {
-                            $query->orWhereRaw('LOWER('.$tablename.'.'.$name.') LIKE "%'.$term.'%"');
-                        }
-                    }
-                });
+                $this->nestedConditionsSearchQuery($result, $settings);
+                $this->nestedSearchFieldsQuery($result, $settings);
 
                 // Merge results from models
-                if (is_null($results)) {
-                    $results = $result->get();
+                if (is_null($collection)) {
+                    $collection = $result->get();
                 } else {
-                    $results = $results->merge($result->get());
+                    $collection = $collection->merge($result->get());
 
                 }
             }
         });
 
-        return $results;
+        return $collection;
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
-//    protected function closureHandler($results)
-//    {
-//        // Closure
-//        if (is_a(end($set), 'Closure')) {
-//            // Run closure
-//            try {
-//                $res = call_user_func(end($set));
-//                // remove Closure from array
-//                array_pop($set);
-//                $query->{$whereMethod}(...[...$set, $res]);
-//            } catch (\Throwable $e) {
-//                // error in closure, not included in query
-//            }
-//        } else {
-//    }
+    protected function nestedConditionsSearchQuery(Builder &$result, SearchModel $settings): void
+    {
+        $tablename = $result->getModel()->getTable();
+
+        $result->whereNested(function ($query) use ($settings, $tablename) {
+
+            foreach ($settings->searchConditions as $set) {
+
+                // Add table name
+                $set['field'] = $tablename.'.'.$set['field'];
+
+                // Create Where Clause
+                $whereMethod = 'where';
+
+                // OR operator
+                if ($set['condition'] === 'OR') {
+                    $whereMethod = 'or'.ucfirst($whereMethod);
+                }
+
+                // IN / LIKE operators
+                $postfix = match ($set['operator']) {
+                    'IN' => "In",
+                    'NOT IN' => "NotIn",
+                    default => "",
+                };
+
+                if ($postfix != '') {
+                    $whereMethod .= $postfix;
+                }
+
+                // Closure
+                if (is_a($set['value'], 'Closure')) {
+                    // Run closure
+                    try {
+                        $res = call_user_func($set['value']);
+                    } catch (\Throwable $e) {
+                        // error in closure, closure result is not included in query
+                    } finally {
+                        if (isset($res)) {
+                            $query->{$whereMethod}(...[$set['field'], $res->get()]);
+                        }
+                    }
+                } else {
+                    $query->{$whereMethod}($set['field'], $set['operator'], $set['value']);
+                }
+            }
+        });
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    protected function nestedSearchFieldsQuery(Builder &$result, SearchModel $settings): void
+    {
+        $tablename = $result->getModel()->getTable();
+
+        $result->whereNested(function ($query) use ($settings, $tablename) {
+            foreach ($settings->searchFields as $name) {
+                foreach ($this->terms as $term) {
+                    $query->orWhereRaw('LOWER('.$tablename.'.'.$name.') LIKE "%'.$term.'%"');
+                }
+            }
+        });
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -259,6 +248,7 @@ class Search
             $priority = $settings->searchFieldsPriority;
             $row->setAttribute('relevance', 0);
             $row->setAttribute('model', get_class($row));
+
             foreach ($row->getAttributes() as $key => $value) {
                 // skip id's etc.
                 if (is_numeric($value)) {
@@ -305,6 +295,7 @@ class Search
             foreach ($settings->showResultFields as $key => $field) {
 
                 if (is_a($field, 'Closure')) {
+                    // bind(Closure, newThis)
                     $boundClosure = \Closure::bind($field, $row);
                     $row->{$key} = $row;
                     try {
