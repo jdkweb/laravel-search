@@ -312,7 +312,7 @@ Without using a config file
 $search = app('search')                         // With default settings
     ->setSearchQuery('Adobe');                  // Optional: preset search words, results directly shown 
     ->setPagination(10)                         // Optional: search items per page , default = 15
-    ->setGetVars([                              // Optional: specific names query strings parameters
+    ->setParams([                              // Optional: specific names query strings parameters
         'search_query' => 'search',             // search terms
         'actual_page' => 'page',                // result page
         'actual_filter' => 'filter'             // result filter
@@ -388,28 +388,24 @@ $result = $search->get();                // returning a collection
 
 ordered by relevance 
 ```php
-  #items: Illuminate\Database\Eloquent\Collection {#3509 ▼
-    #items: array:12 [▼
-      5 => App\Models\Articles {#2958 ▼
-        #connection: "mysql"
-        #table: "articles"
-        ...
-        #attributes: array:19 [▼
-            "id" => 214
-            "model" => "App\Models\Articles"
-            "relevance" => 4221.0572158193
+  #items: Illuminate\Support\Collection {#3470 ▼
+    #items: array:15 [▼
+      0 => Illuminate\Support\Collection {#2268 ▶}
+      1 => Illuminate\Support\Collection {#3511 ▶}
+      2 => Illuminate\Support\Collection {#3260 ▶}
+      3 => Illuminate\Support\Collection {#3076 ▼
+        #items: array:3 [▼
             "title" => "Sed non leo ac massa dignissim condimentum"
             "lead" => "Donec efficitur dictum justo vitae auctor. Curabitur eu diam a nisi eleifend tristique eget non augue. Integer sed metus non nisl fringilla venenatis."
             "url" => "/articles/sed-non-leo-ac-massa-dignissim",
-            "date" => "11/01/2025"        
-            ...
-        
-      2 => App\Models\Articles {#2554 ▶}
-      1 => App\Models\Articles {#3002 ▶}
-      6 => App\Models\Articles {#2638 ▶}
-      ...  
+            "date" => "11/01/2025" 
+        ]
+        #escapeWhenCastingToString: false
+      }
+      4 => Illuminate\Support\Collection {#2335 ▶}
+      5 => Illuminate\Support\Collection {#2554 ▶}
+      ....
     ]
-    #escapeWhenCastingToString: false
   }
 ```
 
