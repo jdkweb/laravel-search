@@ -15,6 +15,7 @@ class SearchServiceProvider extends ServiceProvider
     final public function register(): void
     {
         $this->app->singleton(Search::class, function ($app, $params) {
+            //set search system
             $settings = (!empty($params['settings']) ?
                 $params['settings'] : (!empty($params[0]) ?
                     $params[0] : config('laravel-search-system.defaultSearchEngineSettings')

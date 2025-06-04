@@ -89,8 +89,11 @@ class Search
         // set and order by relevance
         $results = $this->setSearchRelevance($results);
 
-        // Create result Fields
-        $results = $this->getResultFields($results);
+        // Handle result Fields incl Closures
+        $results = $this->handleResultFields($results);
+
+        // Only return fields
+        $results = $this->onlyResultFields($results);
 
         // paging
         return $this->paginate($results);
@@ -99,19 +102,17 @@ class Search
     //------------------------------------------------------------------------------------------------------------------
 
 
-    protected function checkStatus()
+    protected function checkStatus(): bool
     {
         // check if preset search isset
-        if (is_null($this->searchQuery) || !empty(request()->get($this->parameters['search_query']))) {
-            // get search query
-            $search = request()->get($this->parameters['search_query']);
-            if (trim($search) == '') {
-                return false;
-            }
+        $search = $this->getSearchQuery();
 
-            // Set searchQuery Model
-            $this->setSearchQuery($search);
+        if (trim($search) == '') {
+            return false;
         }
+
+        // Set searchQuery Model
+        $this->setSearchQuery($search);
 
         return true;
     }
@@ -124,14 +125,9 @@ class Search
      */
     protected function runSearch(): ?Collection
     {
-        // Key on path, search query and actual filter
-        $key = md5(request()->path().
-        $this->searchQuery->getSearchQuery().
-        request()->get($this->parameters['actual_filter']) ?? '');
-
         if (config('laravel-search.use_caching')) {
             // Cache for paging result without query
-            $results = Cache::remember($key, config('laravel-search.caching_seconds'), function () {
+            $results = Cache::remember($this->createCacheKey(), config('laravel-search.caching_seconds'), function () {
                 return $this->runSearchQuery();
             });
         } else {
@@ -139,6 +135,14 @@ class Search
         }
 
         return $results;
+    }
+
+    protected function createCacheKey(): string
+    {
+        // Key on path, search query and actual filter
+        return md5(request()->path().
+        $this->searchQuery->getSearchQuery().
+        request()->get($this->parameters['actual_filter']) ?? '');
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -298,7 +302,7 @@ class Search
 
     //------------------------------------------------------------------------------------------------------------------
 
-    protected function getResultFields(Collection $results): Collection
+    protected function handleResultFields(Collection $results): Collection
     {
         $results->each(function ($row) {
             $settings = $this->models[get_class($row)];
@@ -327,9 +331,34 @@ class Search
                     isset($row->{$field}) ? $row->{$key} = $row->{$field} : $row->{$key} = '';
                 }
             }
+
         });
 
         return $results;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Filter only the desired fields, defined in the config
+     * @param  Collection  $results
+     * @return Collection
+     */
+    protected function onlyResultFields(Collection $results): Collection
+    {
+        $collection = [];
+
+        $results->each(function ($row) use (&$collection) {
+            $settings = $this->models[get_class($row)];
+            $keys = array_keys($settings->showResultFields);
+            $col = collect($row->getAttributes());
+
+            $collection[] = $col->filter(function ($item, $key) use ($keys) {
+                return in_array($key, $keys);
+            });
+        });
+
+        return collect($collection);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -386,13 +415,21 @@ class Search
         return $this;
     }
 
+
+    public function getSearchQuery(): ?string
+    {
+        return $this->searchQuery?->getSearchQuery() ?? request()->get($this->parameters['search_query']) ?? null;
+    }
+
     /**
      * Load settings form config
      * @param  string  $setting
      * @return $this
      */
-    public function settings(string $setting = ''): static
+    public function settings(?string $setting = ''): static
     {
+        if(empty($setting)) $setting = config('laravel-search-system.defaultSearchEngineSettings');
+
         $arr = config('laravel-search.settings.'.$setting);
 
         if (is_null($arr)) {
@@ -509,6 +546,11 @@ class Search
         return $this;
     }
 
+    public function getParam(string $key): ?string
+    {
+        return $this->parameters[$key] ?? null;
+    }
+
     /**
      * items per page
      * @param  int|null  $pages
@@ -519,4 +561,7 @@ class Search
         $this->pagination = ($pages == false) ? null : (is_numeric($pages) ? $pages : 10);
         return $this;
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+
 }
